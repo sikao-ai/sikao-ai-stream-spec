@@ -9,7 +9,7 @@ last_reviewed: 2026-09-01
 identifier: SIK-1067
 reviewed_commit: b2d785bb6d43e517eb469bc8e229f63fbbf9834e
 notion_issue_url: https://app.notion.com/p/3cdfe478db78818d9adeda20b63b6212
-verdict: CHANGES_REQUIRED
+verdict: PASS
 independent_subagent_review: true
 author_neq_reviewer: true
 round: 1
@@ -32,16 +32,18 @@ document: sikao-ai/sikao-ai-stream-spec
 date: 2026-09-01
 Independent subagent review: true
 author ≠ reviewer: true
-verdict: CHANGES_REQUIRED
+verdict: PASS
 ```
 
 ## Verdict
 
-`CHANGES_REQUIRED`
+`PASS`
 
-被审 SHA 的产品 Spec 与 SHA-scoped Standards 审查均无 OPEN finding；首轮发现的禁用 key 测试问题已在 amend 后解除。
+被审产品 SHA 的 Spec 与 SHA-scoped Standards 全部通过，无 OPEN finding。
 
-唯一未解除的收口阻断是 H8：该 workspace 的全仓 lint 与 tests 仍失败。失败均位于本 SHA 未触及的基线路径，不是 `b2d785b` 引入的产品缺陷，但在没有已批准例外时仍阻断 push / Done。
+首轮发现的禁用 key 测试问题已在 amend 后解除。原 H8 workspace 基线阻断也已由用户授权的独立后续 commit `c011fbfaa92d1c64f72bd42672d1d1dc4bb8ce18` 修复，当前 HEAD 全仓门禁重新通过。
+
+本报告仍只审 `b2d785bb6d43e517eb469bc8e229f63fbbf9834e` 的产品 diff。`c011fbf` 的实现正确性及 push 资格由其自己的 H5 报告负责，不纳入本报告 Spec 核。
 
 ## Review Scope
 
@@ -52,6 +54,7 @@ verdict: CHANGES_REQUIRED
 - 直接影响：矩阵页发布说明、Wave 0/1 行为矩阵、对应契约测试
 - 未影响：`apps/web`、后端 API、DTO、PostgreSQL、运行时状态机、生产 flag registry
 - 审查种类 / 时点：视觉契约 + 行为规格 / 收口
+- 外部 H8 修复依赖：`c011fbfaa92d1c64f72bd42672d1d1dc4bb8ce18`，另行 H5
 
 ## Spec Sources
 
@@ -68,22 +71,29 @@ verdict: CHANGES_REQUIRED
 
 | Gate | 核验 | 结果 |
 |---|---|---|
-| H5 | 外部可观察行为与视觉契约语义发生改变，独立 reviewer 仅审最终 SHA | PASS |
+| H5 | 外部可观察行为与视觉契约语义发生改变；独立 reviewer 仅审最终产品 SHA | PASS |
 | H9 规模 | 3 files，`+21/-31`，原子修改，无超限 | PASS |
 | H9 功能行追踪 | 主控 fetch-after：旧 SHA `30e609d…` count=0；最终 SHA `b2d785bb6d43e517eb469bc8e229f63fbbf9834e` count=1 | PASS |
 | H11 | Full 契约声明 desktop/mobile changed；1440/390 浅/深 smoke 证据显示无旧卡、无横溢、主题 token 正常、console error/warning 0 | PASS |
 | H12 | 消费既定 `Feature Flag: not required`；删除 flag 数据、卡片和旧发布行为，没有新建运行时选择器 | PASS |
 | H8 定向 | Node 24 typecheck、build、定向 eslint、定向 node:test、forbidden-term grep、diff-check | PASS |
-| H8 workspace | 全仓 lint 11 errors；全仓 tests 16 failures | BLOCKED |
+| H8 workspace | 当前 HEAD：lint PASS、0 warning；typecheck PASS；tests 196/196 + 32/32 PASS；build PASS；dev/prod smoke PASS | PASS |
 | H14 | `git status --short` 为空；reviewer 未启动遗留服务 | PASS |
 
-### H8 基线归因
+### H8 基线解除记录
 
-全仓失败不属于本 SHA：
+`b2d785b` 初审时，全仓存在 11 个 lint errors 和 16 个 test failures；失败路径均不在该产品 SHA 的三文件 diff 中，因此不是它引入的回归。
 
-- lint：`src/components/stream/primitives.tsx:900` 起的 conditional hooks、`src/lib/app-data/client.server.ts:214` 的 `no-empty` 等；均不在三文件 diff。
-- tests：`scripts/brand-check.test.mjs:308`、`scripts/check-auth-invariant.test.mjs:93`、`scripts/grok-pwa-plugin.test.mjs:105`、`scripts/with-app-env.test.mjs:62`、`scripts/write-atomic.test.mjs:167` 等共 16 项；本 SHA 新增的定向契约测试通过。
-- 结论：这些失败不是 `b2d785b` 的回归，但 H8 没有“既有基线失败可忽略”的通用例外，因此仍阻断收口。修复应进入独立、已授权的基线修复提交，不应塞回本 SHA。
+用户随后明确授权独立修复，形成 `c011fbfaa92d1c64f72bd42672d1d1dc4bb8ce18`。当前 HEAD 独立复跑结果：
+
+- `npm run lint`：PASS，0 warning
+- `npm run typecheck`：PASS
+- `npm test`：196/196 与 32/32 PASS
+- `npm run build`：PASS
+- dev/prod smoke：PASS
+- `b2d785b` 仍为当前 HEAD 的祖先，产品 diff 未被改写
+
+因此原 B-01 已解除。`c011fbf` 的 H5 仍须独立完成；本报告不替代它的审查。
 
 ## Spec
 
@@ -112,11 +122,11 @@ verdict: CHANGES_REQUIRED
 |---|---|---|---|---|
 | F-01 | Important | RESOLVED | `scripts/stream-foundation-contract.test.mjs:10` | 初始 SHA `30e609d…` 的测试本身包含并测试禁用 key，违反“测试均无该 key”。amend 后最终 SHA 改为检查 `FEATURE_FLAG`、`matrix-flag`、`defaultOff` 旧结构，禁用 key 全仓目标范围 0 命中。 |
 
-## Closure Blocker
+## Closure Blockers
 
-| ID | Gate | 证据 | 归因 | 解除条件 |
+| ID | Gate | 状态 | 证据 | 说明 |
 |---|---|---|---|---|
-| B-01 | H8 | `npm run lint`：11 errors；`npm test`：196 tests / 180 pass / 16 fail | 全部位于本 SHA 未触及路径，不是产品 diff finding | 在独立基线修复中清零后，针对同一最终 SHA 更新本报告证据；或取得适用的明确硬规则例外 |
+| B-01 | H8 | RESOLVED | 当前 HEAD lint/typecheck/tests/build/dev-prod smoke 全部 PASS | 基线修复由独立 commit `c011fbf` 承载并另行 H5，不混入产品 Spec 核 |
 
 ## What Is Good
 
@@ -124,8 +134,9 @@ verdict: CHANGES_REQUIRED
 - 删除的是完整 flag 数据模型和卡片，而非只隐藏文案。
 - 正常部署、代码 rollback、业务 capability flag 边界三项均有正向测试。
 - amend 后禁用 key 不再以“负向测试”为名重新进入测试源码。
+- 基线问题在独立提交中修复，没有污染 SIK-1067 产品提交的原子性。
 
-H5: triggered（视觉契约、交互语义及外部可观察行为定义发生改变）
+H5: triggered（视觉契约、交互语义及外部可观察行为定义发生改变；最终 verdict PASS）
 
 DocFM: n/a（审查者仅返回可落档报告内容；未改 `docs/plan/**`、`docs/engineering/**` 或 `docs/vault/**`）
 
