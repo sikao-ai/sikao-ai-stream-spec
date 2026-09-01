@@ -885,9 +885,6 @@ export function ProposalCard({
   readonly onResolved?: (kind: "ok" | "skip") => void;
   readonly specimen?: ApproveSpecimen;
 }) {
-  if (specimen) {
-    return <ProposalSpecimen title={title} reason={reason} blocking={blocking} specimen={specimen} />;
-  }
   const questions = [
     {
       q: title,
@@ -913,6 +910,10 @@ export function ProposalCard({
       if (advanceRef.current != null) window.clearTimeout(advanceRef.current);
     };
   }, []);
+
+  if (specimen) {
+    return <ProposalSpecimen title={title} reason={reason} blocking={blocking} specimen={specimen} />;
+  }
 
   const finish = (kind: "ok" | "skip") => {
     setSent(kind);
@@ -1235,15 +1236,16 @@ function RecMeter({
 }
 
 export function RecommendCard({ specimen }: { readonly specimen?: RecSpecimen } = {}) {
-  if (specimen) {
-    return <RecommendSpecimen specimen={specimen} />;
-  }
   const [picked, setPicked] = useState<RecId>("plan");
   const [open, setOpen] = useState(false);
   const [done, setDone] = useState(false);
   const current = REC_CHOICES.find((c) => c.id === picked) ?? REC_CHOICES[0];
   const skipped = current.id === "skip";
   const alts = REC_CHOICES.filter((c) => c.id !== "plan");
+
+  if (specimen) {
+    return <RecommendSpecimen specimen={specimen} />;
+  }
 
   if (done) {
     return (

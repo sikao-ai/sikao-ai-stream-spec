@@ -1,7 +1,12 @@
 node_modules/
 .vercel/
 .tanstack/
-.grok/
+.grok/*
+!.grok/app-env.json
+!.grok/skills/
+.grok/skills/*
+!.grok/skills/og/
+!.grok/skills/og/**
 .output/
 dist/
 .project_id

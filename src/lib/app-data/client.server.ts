@@ -211,7 +211,9 @@ function tokenIdentityKey(token: string): string {
             .digest("base64url");
         }
       }
-    } catch {}
+    } catch {
+      // A malformed JWT is still a stable opaque credential; hash it below.
+    }
   }
   return createHash("sha256").update(token).digest("base64url");
 }

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Columns2, Copy, PictureInPicture2, Plus, RotateCcw, Trash2, X } from "lucide-react";
 import { askSikao, type ReplyKind } from "@/lib/ask-sikao";
 import { DOCK_HOSTS, type SourceChip } from "@/lib/dock-catalog";
@@ -124,7 +124,7 @@ function AiDockLive() {
   const threadRef = useRef<HTMLDivElement>(null);
 
   const chat = chats.find((c) => c.id === chatId) ?? chats[0];
-  const thread = chat?.thread ?? [];
+  const thread = useMemo(() => chat?.thread ?? [], [chat]);
 
   useEffect(() => {
     setSources([...DOCK_HOSTS[host].sources]);

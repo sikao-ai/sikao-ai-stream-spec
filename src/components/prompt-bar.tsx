@@ -49,7 +49,10 @@ export function PromptBar({
   const fieldRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const token = plus ? { kind: "at" as const, q: "", start: value.length } : parseToken(value);
+  const token = useMemo(
+    () => (plus ? { kind: "at" as const, q: "", start: value.length } : parseToken(value)),
+    [plus, value],
+  );
   const rows = useMemo(() => {
     if (!token) return [];
     const q = token.q;
