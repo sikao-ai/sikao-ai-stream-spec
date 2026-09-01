@@ -35,7 +35,6 @@ import {
 import {
   CONTRACT_PATH,
   CONTRACT_VERSION,
-  FEATURE_FLAG,
   HITL_APPROVE_STATES,
   HITL_REC_STATES,
   RUNTIME_MATRIX,
@@ -1043,25 +1042,10 @@ function MatrixPage() {
         <h1 className="spec-h1">场景、形态、状态必须先对齐</h1>
         <p className="spec-lede">
           四密是密度，不是产品场景。1032 形态是正文怎么写，不是第四密。1037 长任务不进对话流。
-          {FEATURE_FLAG.key} {FEATURE_FLAG.required ? "必须有" : "不需要"} flag，默认 {FEATURE_FLAG.defaultOff ? "OFF" : "ON"}，{FEATURE_FLAG.kind}，surface={FEATURE_FLAG.surface}。
+          这是 AI 基础设施单路径：统一 chrome 随正常 Web 部署直接上线，回滚只走代码 revert / roll-forward；宿主自己的业务 capability flag 不控制 chrome 版本。
           web-desktop / web-mobile 都是 {SURFACES["web-desktop"]}。{SURFACES.viewports}。契约入仓路径 {CONTRACT_PATH}。
         </p>
       </header>
-
-      <div className="spec-card" data-testid="matrix-flag">
-        <h3 className="spec-h3">Feature Flag · 必须重开</h3>
-        <p className="spec-meta">{FEATURE_FLAG.reason}</p>
-        <ul className="spec-rule-list">
-          <li className="spec-rule spec-rule--flag" data-kind="do">
-            <span className="spec-rule-tag" data-testid="matrix-flag-key">
-              {FEATURE_FLAG.key}
-            </span>
-            <p className="spec-meta">
-              kind={FEATURE_FLAG.kind} · default OFF · surface=both · 不复用 ai.scannable_answer · ProgressAtom 宿主继续走既有 capability flags
-            </p>
-          </li>
-        </ul>
-      </div>
 
       <div className="spec-card">
         <h3 className="spec-h3">波次</h3>

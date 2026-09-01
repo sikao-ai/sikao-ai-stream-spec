@@ -4,17 +4,6 @@ export const CONTRACT_VERSION = "1067.w0.4" as const;
 export const WORD_VERSION = "1066.v4" as const;
 export const CONTRACT_PATH = "docs/plan/sik-1067-ai-stream-density-visual-contract.md" as const;
 
-export const FEATURE_FLAG = {
-  required: true,
-  key: "ai.stream_chrome",
-  kind: "release",
-  defaultOff: true,
-  surface: "both",
-  dark: false,
-  reason:
-    "MessageList / InFlightTurnNodes / turnNodes 是桌面+移动共享。本票从对话局部收口扩成全场景 chrome 迁移，必须有 flag。不复用 ai.scannable_answer。ProgressAtom 宿主继续走既有 capability flags。",
-} as const;
-
 export const SURFACES = {
   "web-desktop": "changed",
   "web-mobile": "changed",
@@ -66,13 +55,13 @@ export const WAVE_PLAN = [
     wave: "W0",
     ticket: "SIK-1067",
     do: "本文 + 规格 App 矩阵页 + H11 1440/390 浅/深静帧。词表仍归 SIK-1066。",
-    dont: "不改 apps/web。不注册 flag。不把规格 App 当生产代码合入。",
+    dont: "不改 apps/web。不把规格 App 当生产代码合入。",
   },
   {
     wave: "W1",
     ticket: "SIK-1067 子票（契约入仓后开）",
-    do: "Turn 壳挂四密 chrome：Dots 完成态、PromptList、ActionChip、StatusTag、活时审批、落定推荐、你记过。注册 ai.stream_chrome 默认 OFF。",
-    dont: "不改 ProgressAtom。不改 StreamingProse。不按宿主分叉皮肤。",
+    do: "统一 Turn primitives 直接走 canonical renderer：Dots 完成态、PromptList、ActionChip、StatusTag、活时审批、落定推荐、你记过。随正常 Web 部署直接上线。",
+    dont: "不改 ProgressAtom。不改 StreamingProse。不保留旧 renderer 或双皮肤；宿主业务 capability flag 不控制 chrome 版本。",
   },
   {
     wave: "W2+",
