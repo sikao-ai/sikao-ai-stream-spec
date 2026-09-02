@@ -37,15 +37,15 @@ export const DENSITIES: ReadonlyArray<{
     id: "tool",
     title: "工具流",
     host: "通用 dock · 复盘 Agent · 计划",
-    flow: "Dots 状态行自己一行 → 活时 tool chips 自己一行上顶 → 点开折成 lucide 日志 → 散文 + 角标。落定后发现卡量化错因，筛选表重排错题。",
-    note: "默认 agentic 感。绿给完成点阵和整轮「已完成」。不对工具打勾。",
-    chrome: "+ 专家栈 · lucide 日志 · 发现卡 · 筛选表",
+    flow: "工作时：Dots 状态行 + 专家栈 lucide chips 自己一行。出字后芯片收起。正文结束：状态行「已完成」可折叠，点开看多步骤。落定后发现卡 / 筛选表。",
+    note: "专家栈是活时过程 UI（简洁 lucide 条）。多步骤是正文后的折叠日志（Grok 式步骤列）。不是两套对话皮。绿给完成点阵和「已完成」，不对每步打勾。",
+    chrome: "+ 活时专家栈 · 正文后多步骤折叠 · 发现卡 · 筛选表",
   },
   {
     id: "teach",
     title: "讲题流",
     host: "Teach · Guided",
-    flow: "同工具流，外加题面 mark 与 oprow 双现。",
+    flow: "同工具流（活时专家栈 → 正文后多步骤折叠），外加题面 mark。方法卡 / 你来在正文后。",
     note: "方法卡 KindTag.suggest；你来门 KindTag.input。脚印贴在两张卡之后。",
     chrome: "+ 题面 · 方法卡 · 你来",
   },
@@ -67,9 +67,8 @@ export const DENSITY_CHROME: ReadonlyArray<{
   gate: boolean;
 }> = [
   { row: "Dots 状态行", short: true, tool: true, teach: true, gate: true },
-  { row: "专家栈（活时另起一行）", short: false, tool: true, teach: true, gate: true },
-  { row: "lucide 操作列", short: false, tool: true, teach: true, gate: true },
-  { row: "过程折叠", short: false, tool: true, teach: true, gate: true },
+  { row: "专家栈（工作时 lucide 条）", short: false, tool: true, teach: true, gate: false },
+  { row: "多步骤折叠（正文后点开）", short: false, tool: true, teach: true, gate: true },
   { row: "角标浮出 chunk", short: false, tool: true, teach: true, gate: true },
   { row: "题面 mark", short: false, tool: false, teach: true, gate: false },
   { row: "方法卡 / 你来", short: false, tool: false, teach: true, gate: false },
@@ -122,6 +121,19 @@ export const TURN_STATUS = {
   file: "Dots + 已完成 · 右时间",
   does: "点阵贴着回合文案。思考时间在行右。绿给完成点阵和「已完成」。",
   not: "不当每步绿勾，不是第六族 pill。时间不插在点阵和已完成中间。",
+} as const;
+
+/**
+ * 完整 AI agent 对话骨架（四密同一套，只加减块）。
+ * 活时专家栈（lucide chips）保留；正文结束后同一状态行折叠出多步骤。
+ */
+export const AGENT_STREAM = {
+  title: "Agent 对话一轮",
+  live: "工作时：Dots 状态行自己一行；专家栈 lucide chips 自己一行，只露图标，新的从右顶走。不展开多步骤。gate 活时是 Approval，不是 chips。",
+  streaming: "出字：专家栈收起。Dots 生成中。正文通栏无框，打字机沿用现网。",
+  settled:
+    "正文结束后：状态行「已完成」+ 时长可折叠。点开看多步骤（思考 / 检索 / 读 / 写），不对每步打勾。芯片不删数据，只是换成折叠里的步骤列。",
+  order: "用户泡 →（讲题：题面）→ Dots 行 →（活时专家栈 | 活时 Approval）→ 正文 →（落定控件）→ 脚印",
 } as const;
 
 /**
@@ -249,7 +261,7 @@ export const RULES: ReadonlyArray<{ kind: "do" | "dont"; title: string; body: st
   {
     kind: "do",
     title: "答案是主角",
-    body: "Dots 状态行自己一行。活时 tool chips 另起一行只露图标，新的把旧的顶走。点开折成 lucide 操作列；一出正文芯片消失，只留「已完成」折叠。LiveStep 最多 2 行日志。答案通栏 14/1.75，无框。对话里点 [n] 在角标旁浮出那一张，不占文档流。脚印贴在方法卡 / 你来 / 门之后。",
+    body: "Dots 状态行自己一行。工作时专家栈另起一行只露 lucide，新的把旧的顶走。正文结束后芯片收进状态行折叠，点开才是多步骤（思考/检索/读/写），不对每步打勾。短答无过程则零折叠。答案通栏 14/1.75，无框。对话里点 [n] 在角标旁浮出那一张。脚印贴在方法卡 / 你来 / 门之后。",
   },
   {
     kind: "dont",
@@ -314,7 +326,7 @@ export const STEALS = [
   {
     id: "claude",
     from: "Claude 对话面",
-    take: "思考折叠、tool chips 活时另起一行、浅用户泡、正文无框、点角标在旁边浮出引用、脚印在整轮末",
+    take: "浅用户泡、正文无框、点角标在旁边浮出引用、脚印在整轮末。正文后的多步骤折叠参考 Grok / Beautiful UI thinking traces。",
     leave: "侧栏人设、附件卡皮肤",
   },
   {
