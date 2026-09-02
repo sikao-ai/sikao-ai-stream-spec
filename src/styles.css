@@ -1372,17 +1372,20 @@ button.sk-status-line {
   width: 100%;
   min-width: 0;
   min-height: 28px;
-  padding-left: calc(15px + 6px);
+  padding-left: calc(16px + 6px);
 }
 
 .sk-pixel-grid {
   display: grid;
+  box-sizing: content-box;
   flex-shrink: 0;
-  width: 15px;
-  height: 15px;
+  width: 16px;
+  height: 16px;
+  aspect-ratio: 1;
   grid-template-columns: repeat(3, 4px);
   grid-template-rows: repeat(3, 4px);
-  gap: 1.5px;
+  gap: 2px;
+  place-items: center;
   place-content: center;
   margin: 0;
 }
@@ -1390,7 +1393,7 @@ button.sk-status-line {
 .sk-pixel {
   width: 4px;
   height: 4px;
-  border-radius: var(--radius-999);
+  border-radius: 50%;
   background: var(--color-text-primary);
   opacity: 0.28;
 }
