@@ -24,6 +24,7 @@ import {
   DOT_MACHINE,
   DOT_STATES,
   ENTRIES,
+  EVENT_TO_BLOCK,
   FAMILIES,
   HITL,
   LANDING_GAPS,
@@ -267,6 +268,33 @@ function Overview() {
                   <td>{row.role}</td>
                   <td>{row.product}</td>
                   <td>{row.land}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2 className="spec-h2">SSE → 内容块</h2>
+        <p className="spec-meta">产品 decodeConsultStreamItem 必须按此投影，禁止另造机。</p>
+        <div className="spec-table-wrap">
+          <table className="spec-table">
+            <thead>
+              <tr>
+                <th>帧</th>
+                <th>内容块</th>
+                <th>回合渲染</th>
+              </tr>
+            </thead>
+            <tbody>
+              {EVENT_TO_BLOCK.map((row) => (
+                <tr key={row.frame}>
+                  <td>
+                    <code>{row.frame}</code>
+                  </td>
+                  <td>{row.block}</td>
+                  <td>{row.chrome}</td>
                 </tr>
               ))}
             </tbody>

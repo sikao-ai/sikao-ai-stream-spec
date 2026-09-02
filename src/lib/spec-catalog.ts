@@ -341,6 +341,23 @@ export const LANDING_GAPS: ReadonlyArray<{
   },
 ];
 
+/** consult SSE → 内容块。产品 `decodeConsultStreamItem` 必须按此投影，禁止另造机。 */
+export const EVENT_TO_BLOCK: ReadonlyArray<{
+  frame: string;
+  block: string;
+  chrome: string;
+}> = [
+  { frame: "phase thinking/gathering · 无 delta", block: "思考块", chrome: "回合态 wait；可有专家栈" },
+  { frame: "tool calling · 无正文", block: "工具调用", chrome: "回合态 tool + 专家栈" },
+  { frame: "delta / assistantText", block: "正文", chrome: "回合态 stream；专家栈收起" },
+  { frame: "cancelled", block: "—", chrome: "回合态 stop；正文保留；多步骤可折" },
+  { frame: "provider_unknown / failed", block: "—", chrome: "回合态 error + ErrorBand" },
+  { frame: "stop_pending", block: "—", chrome: "回合态 halt" },
+  { frame: "recovering / replay_gap", block: "—", chrome: "回合态 recover" },
+  { frame: "completed + 有过程", block: "工具结果", chrome: "回合态 done + 多步骤折叠" },
+  { frame: "completed 无过程", block: "正文", chrome: "回合态 done，零折叠" },
+];
+
 /**
  * Dots 投影 1040 DurableAttachmentState + ExecutionTerminal。
  * 几何：4px 点、gap 2px、槽 16×16 整数格；色相按终态/中断/失败分。
