@@ -31,6 +31,7 @@ import {
   STEALS,
   TOKENS,
   TURN_STATUS,
+  AGENT_STREAM,
 } from "@/lib/spec-catalog";
 import {
   CONTRACT_PATH,
@@ -195,7 +196,7 @@ function Overview() {
         <span className="spec-kicker">sikao-ai / sikao · SIK-741</span>
         <h1 className="spec-h1">四密五族，不再发明皮肤</h1>
         <p className="spec-lede">
-          全局 AI 流只加四种密度。控件只有五族。入口另槽，全是 sunken AiMark。暗色只换 token，统一无描边。
+          一轮 agent 对话：用户泡 → Dots →（工作时专家栈 lucide 条）→ 正文 →（正文后多步骤折叠）→ 落定控件。四密只加减块。控件只有五族。入口另槽。暗色只换 token，统一无描边。
         </p>
       </header>
 
@@ -526,8 +527,17 @@ function FamiliesPage() {
         <span className="spec-chip">{TURN_STATUS.file}</span>
         <h3 className="spec-h3">{TURN_STATUS.title} · 回合态，不是第六族</h3>
         <p className="spec-meta">{TURN_STATUS.does}</p>
+        <p className="spec-meta spec-h3-gap">{AGENT_STREAM.live}</p>
         <div className="spec-h3-gap">
-          <TurnStatusLine state="wait" copy="正在检索" time="4s" />
+          <TurnStatusLine
+            state="tool"
+            copy="正在检索"
+            time="4s"
+            rail={<LiveExpertPlayback />}
+          />
+        </div>
+        <p className="spec-meta spec-h3-gap">{AGENT_STREAM.settled}</p>
+        <div className="spec-h3-gap">
           <TurnStatusLine
             state="done"
             copy=""
@@ -537,9 +547,11 @@ function FamiliesPage() {
           >
             <OpRow op="thought" text="先看搭配对象是「势头」，不是「情绪」。" />
             <OpRow op="search" text="检索近义干扰 · 遏制 / 遏止 / 抑制" elapsed="1.2s" />
+            <OpRow op="read" text="打开近义干扰表" elapsed="0.4s" />
+            <OpRow op="write" text="写入对照笔记" elapsed="0.6s" />
           </TurnStatusLine>
         </div>
-        <p className="spec-meta spec-h3-gap">点阵贴着「已完成」。思考时间在行右。操作列与点阵同槽 15px。</p>
+        <p className="spec-meta spec-h3-gap">点阵贴着「已完成」。思考时间在行右。多步骤 lucide 与点阵同槽 15px。</p>
         <div className="spec-h3-gap">
           <OpRow op="thought" text="先看搭配对象是「势头」，不是「情绪」。" />
           <OpRow op="search" text="检索近义干扰 · 遏制 / 遏止 / 抑制" elapsed="1.2s" />
@@ -964,9 +976,9 @@ function Playground() {
     <div className="spec-page">
       <header className="spec-hero">
         <span className="spec-kicker">compose · density first</span>
-        <h1 className="spec-h1">拼装：密度、专家栈、结果页</h1>
+        <h1 className="spec-h1">拼装：一轮完整 agent 对话</h1>
         <p className="spec-lede">
-          先选密度再走一轮。门卡流活时会停住等你点审批，点完才出正文；落定后的「要不要写」是推荐卡，不挡下一问。
+          {AGENT_STREAM.order} 工作时用专家栈 lucide 条；正文结束后同一状态行折叠出多步骤。门卡流活时停住等审批，点完才出正文；落定推荐卡不挡下一问。
         </p>
         <DensityPicker value={density} onChange={setDensity} />
       </header>
@@ -1003,21 +1015,34 @@ function Playground() {
           busy={busy}
         />
       </div>
-      <Frame title="专家栈 · tool chips" kicker="自己一行">
-        <TurnStatusLine
-          state="tool"
-          copy="正在检索"
-          time="4s"
-          rail={<LiveExpertPlayback />}
-        />
-      </Frame>
+      <div className="spec-split">
+        <Frame title="工作时 · 专家栈" kicker="lucide 条">
+          <TurnStatusLine
+            state="tool"
+            copy="正在检索"
+            time="4s"
+            rail={<LiveExpertPlayback />}
+          />
+        </Frame>
+        <Frame title="正文后 · 多步骤" kicker="点开查看">
+          <TurnStatusLine
+            state="done"
+            copy=""
+            status="done"
+            time="6s"
+            foldable
+          >
+            <OpRow op="thought" text="先看搭配对象是「势头」，不是「情绪」。" />
+            <OpRow op="search" text="检索近义干扰 · 遏制 / 遏止 / 抑制" elapsed="1.2s" />
+            <OpRow op="read" text="打开近义干扰表" elapsed="0.4s" />
+            <OpRow op="write" text="写入对照笔记" elapsed="0.6s" />
+          </TurnStatusLine>
+        </Frame>
+      </div>
       <div className="spec-note">
-        <p>
-          Dots 状态行自己一行。tool chips 自己一行，只露 lucide 图标，新的从右把旧的顶走。近义 / 注释 / 卷面 不进活时。
-        </p>
-        <p>
-          点开状态行，芯片折成 lucide 操作列。一出正文芯片消失，只留「已完成」折叠——不对每步打勾。
-        </p>
+        <p>{AGENT_STREAM.live}</p>
+        <p>{AGENT_STREAM.streaming}</p>
+        <p>{AGENT_STREAM.settled}</p>
       </div>
       <Frame title="结果页 · Perplexity 扫描" kicker="不是对话气泡">
         <PplxResult

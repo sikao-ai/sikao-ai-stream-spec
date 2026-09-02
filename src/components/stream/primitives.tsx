@@ -1767,6 +1767,12 @@ function ProcessSteps({ phase }: { readonly phase: StreamPhase }) {
         status={live ? "running" : "done"}
         elapsed={live ? undefined : "1.2s"}
       />
+      {live ? null : (
+        <>
+          <OpRow op="read" text="打开近义干扰表" elapsed="0.4s" />
+          <OpRow op="write" text="写入对照笔记" elapsed="0.6s" />
+        </>
+      )}
     </>
   );
 }
@@ -1785,8 +1791,9 @@ export function DensityStream({
   readonly onGateResolved?: (kind: "ok" | "skip") => void;
 }) {
   const sources: readonly SourceCard[] = density === "short" ? [] : SAP_SOURCES.slice(0, 2);
-  const hasLog = density !== "short" && phase !== "waiting";
-  const showChips = density !== "short" && density !== "gate" && phase === "live";
+  const hasProcess = density !== "short";
+  const showChips = hasProcess && density !== "gate" && phase === "live";
+  const showStepFold = hasProcess && phase === "settled";
   const widgets =
     density === "teach" ? (
       <>
@@ -1827,11 +1834,11 @@ export function DensityStream({
           copy={copyFor(density, phase)}
           status={roundFor(phase)}
           time={timeFor(density, phase)}
-          foldable={hasLog}
+          foldable={showStepFold}
           defaultOpen={false}
           rail={showChips ? <LiveExpertPlayback /> : undefined}
         >
-          {hasLog ? <ProcessSteps phase={phase} /> : null}
+          {showStepFold ? <ProcessSteps phase={phase} /> : null}
         </TurnStatusLine>
         {density === "gate" && phase === "live" ? (
           <ProposalCard
