@@ -493,31 +493,95 @@ export const HOST_MOUNT: ReadonlyArray<{
 ];
 
 /**
- * 回合排印。栈对齐产品 tokens.css（DM Sans / Inter / Noto SC）。
- * 正文行高 1.75 只给 Assistant text；UI 默认 body 仍是 1.6。
+ * 回合排印分三壳。功能/动线 H17：iOS Phone = Web 移动端。
+ * 字栈允许原生：Web 用 DM Sans；iOS 用 SF Pro + PingFang。
  */
-export const TYPE_STACK = {
-  ui: 'DM Sans → Inter → Noto Sans SC → PingFang SC → YaHei',
-  mono: "JetBrains Mono",
-  rules: "CJK 禁止斜体。最小 --font-tiny 11px。回合不用 display/h1。产品黄不进流。",
-} as const;
+export const TYPE_SURFACES: ReadonlyArray<{
+  id: "web-desktop" | "web-mobile" | "ios-phone";
+  label: string;
+  stack: string;
+  mono: string;
+  note: string;
+}> = [
+  {
+    id: "web-desktop",
+    label: "Web 桌面壳",
+    stack: "DM Sans → Inter → Noto Sans SC → PingFang SC → YaHei",
+    mono: "JetBrains Mono",
+    note: ">768。产品 tokens 默认档。",
+  },
+  {
+    id: "web-mobile",
+    label: "Web 移动壳",
+    stack: "DM Sans → Inter → Noto Sans SC → PingFang SC → YaHei",
+    mono: "JetBrains Mono",
+    note: "≤768 compact。正文不跟 tokens 把流内正文降到 13。输入条 16px 防 Safari 缩放。",
+  },
+  {
+    id: "ios-phone",
+    label: "iOS Phone",
+    stack: "SF Pro Text → PingFang SC → 系统 UI",
+    mono: "SF Mono / Menlo",
+    note: "H17 功能跟 Web 移动。字栈原生。iPad 未拍板，禁止外推。",
+  },
+];
 
 export const TYPE_SCALE: ReadonlyArray<{
   slot: string;
-  token: string;
-  size: string;
-  lh: string;
-  weight: string;
-  family: string;
+  desktop: string;
+  mobile: string;
+  ios: string;
 }> = [
-  { slot: "正文", token: "--font-body / --line-height-prose", size: "14px", lh: "1.75", weight: "400", family: "ui" },
-  { slot: "用户泡", token: "--font-body / --line-height-user", size: "14px", lh: "1.7", weight: "400", family: "ui" },
-  { slot: "卡头（Approval / 推荐 / 方法）", token: "--font-card / --line-height-card", size: "16px", lh: "1.5", weight: "600", family: "ui" },
-  { slot: "回合态文案 · 多步骤行 · PromptList", token: "--font-meta / --line-height-meta", size: "12px", lh: "1.4", weight: "500", family: "ui" },
-  { slot: "KindTag · kicker · 脚印来源数字", token: "--font-tiny / --line-height-tiny", size: "11px", lh: "1.4", weight: "400", family: "ui" },
-  { slot: "elapsed 时长", token: "--font-tiny + mono", size: "11px", lh: "1.4", weight: "400", family: "mono" },
-  { slot: "输入条（非正文）", token: "--font-body / --line-height-body", size: "14px", lh: "1.6", weight: "400", family: "ui" },
+  { slot: "正文", desktop: "14 / 1.75 / 400", mobile: "14 / 1.75 / 400", ios: "16 / 1.75 / 400" },
+  { slot: "用户泡", desktop: "14 / 1.7 / 400", mobile: "13 / 1.65 / 400", ios: "16 / 1.7 / 400" },
+  { slot: "卡头", desktop: "16 / 1.5 / 600", mobile: "14 / 1.45 / 600", ios: "17 / 1.4 / 600" },
+  { slot: "回合态 · 多步骤 · PromptList", desktop: "12 / 1.4 / 500", mobile: "12 / 1.4 / 500", ios: "13 / 1.4 / 500" },
+  { slot: "KindTag · kicker · 脚印数字", desktop: "11 / 1.4 / 400", mobile: "11 / 1.4 / 400", ios: "11 / 1.4 / 400" },
+  { slot: "elapsed", desktop: "11 mono", mobile: "11 mono", ios: "11 SF Mono" },
+  { slot: "输入条", desktop: "14 / 1.6 / 400", mobile: "16 / 1.4 / 400", ios: "17 / 1.4 / 400" },
 ];
+
+/** 回合布局。单位 px。触控地板 44 只约束 CTA，不放大 Dots。 */
+export const LAYOUT_SCALE: ReadonlyArray<{
+  slot: string;
+  desktop: string;
+  mobile: string;
+  ios: string;
+}> = [
+  { slot: "Turn 列宽", desktop: "主列 max 720，居中", mobile: "通栏，左右 16", ios: "通栏，左右 16，避开 Home Indicator" },
+  { slot: "用户泡", desktop: "max 82%，右对齐，pad 8 12，r 12/12/5/12", mobile: "max 88%，pad 8 12", ios: "max 88%，pad 8 12" },
+  { slot: "回合态行", desktop: "高 28，Dots 16，gap 6", mobile: "高 28，Dots 16", ios: "高 32，Dots 16" },
+  { slot: "专家栈", desktop: "芯片 22，间距 6，自己一行", mobile: "同左，可横滑", ios: "芯片 28 触控，横滑" },
+  { slot: "多步骤行", desktop: "高 22，lucide 15，列 gap 8", mobile: "高 24", ios: "高 28，lucide 15" },
+  { slot: "正文", desktop: "通栏无框，段间距 8", mobile: "同左", ios: "同左" },
+  { slot: "Approval / 推荐卡", desktop: "sunken，内边距 16，主钮高 32", mobile: "通栏，主钮高 44", ios: "通栏，主钮高 44" },
+  { slot: "脚印", desktop: "高 28，hover 才拉满对比", mobile: "高 44 触控，常显", ios: "高 44，常显" },
+  { slot: "输入条", desktop: "高 40，圆 12", mobile: "高 44", ios: "高 44，键盘避让" },
+];
+
+/** 回合文案锁。字面以 SIK-1066 1066.v4 为准；这里只列槽位。 */
+export const COPY_LOCK: ReadonlyArray<{
+  slot: string;
+  copy: string;
+  avoid: string;
+}> = [
+  { slot: "回合态 wait", copy: "正在想", avoid: "Churning / Thinking" },
+  { slot: "回合态 tool", copy: "正在检索", avoid: "Running tools" },
+  { slot: "回合态 stream", copy: "（空，点阵说话）", avoid: "生成中 badge" },
+  { slot: "回合态 done", copy: "已完成", avoid: "Done / 绿色勾" },
+  { slot: "回合态 stop", copy: "已停止生成", avoid: "Cancelled" },
+  { slot: "回合态 error", copy: "未确认 / 重试", avoid: "Failed" },
+  { slot: "KindTag", copy: "到你了 · 你记过", avoid: "可回看" },
+  { slot: "推荐度", copy: "1–5", avoid: "高信心" },
+  { slot: "导航 CTA", copy: "查看笔记", avoid: "柔黄主钮" },
+  { slot: "脚印", copy: "有帮助 / 没帮助 / 复制 / 重新生成 / 来源 N", avoid: "Worked for" },
+];
+
+export const TYPE_STACK = {
+  ui: TYPE_SURFACES[0].stack,
+  mono: TYPE_SURFACES[0].mono,
+  rules: "CJK 禁止斜体。最小 11px。三壳对照 TYPE_SURFACES。回合不用 display/h1。",
+} as const;
 
 /**
  * Dots 投影 1040 DurableAttachmentState + ExecutionTerminal。
@@ -684,7 +748,7 @@ export const RULES: ReadonlyArray<{ kind: "do" | "dont"; title: string; body: st
   {
     kind: "do",
     title: "回合排印锁 token",
-    body: "栈 DM Sans / Inter / Noto SC，等宽 JetBrains Mono。正文 14/1.75，用户泡 14/1.7，回合态与多步骤 12/1.4，时长 11 等宽。不用 display/h1。色板页 TYPE_SCALE 可抄。",
+    body: "三壳对照色板页：Web 桌面 / Web 移动 / iOS Phone。Web 栈 DM Sans / Inter / Noto SC；iOS SF Pro + PingFang。正文桌面与 Web 移动 14/1.75，iOS Phone 16/1.75。最小 11px。不用 display/h1。",
   },
 ];
 
