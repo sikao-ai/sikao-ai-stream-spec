@@ -522,7 +522,7 @@ export const SOURCE_STATES = [
 ] as const;
 
 export const TOOL_RESULT_RULES = [
-  { id: "empty", rule: "发现卡「这一轮没有量化发现」；筛选表不渲染。" },
+  { id: "empty", rule: "发现卡「这一轮没有新的错因」；筛选表不渲染。" },
   { id: "one", rule: "发现卡单则，藏翻页。" },
   { id: "page", rule: "发现 N · 上一则/下一则。不一次堆所有卡。" },
   { id: "chain", rule: "多工具只留本轮跑过的；活时 chips 上顶，落定进发现/表/引用。" },

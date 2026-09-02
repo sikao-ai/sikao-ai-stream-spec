@@ -67,8 +67,8 @@ export const DENSITIES: ReadonlyArray<{
     id: "gate",
     title: "门卡流",
     host: "写笔记 · 整理 · 提案 · HITL",
-    flow: "活时审批卡挡住回合：Agent 停住等点，正文还没出。落定后推荐卡提案，不阻塞下一问。",
-    note: "审批只出现在活时。落定写计划用推荐卡，不用审批。导航 CTA 继续炭黑。",
+    flow: "活时确认卡挡住：先问你，选完才往下写。落定后推荐卡提案，不挡下一问。",
+    note: "确认卡只出现在活时。落定写计划用推荐卡。导航 CTA 炭黑。",
     chrome: "+ 活时审批 · 落定推荐卡",
   },
 ];
@@ -575,6 +575,10 @@ export const COPY_LOCK: ReadonlyArray<{
   { slot: "推荐度", copy: "1–5", avoid: "高信心" },
   { slot: "导航 CTA", copy: "查看笔记", avoid: "柔黄主钮" },
   { slot: "脚印", copy: "有帮助 / 没帮助 / 复制 / 重新生成 / 来源 N", avoid: "Worked for" },
+  { slot: "活时门提示", copy: "先选一下，选完才往下写", avoid: "回合停住 · 确认后才生成" },
+  { slot: "回合态 gate", copy: "等你选", avoid: "等待确认" },
+  { slot: "门卡 KindTag", copy: "确认", avoid: "审批" },
+  { slot: "发现卡空态", copy: "这一轮没有新的错因", avoid: "没有量化发现" },
 ];
 
 export const TYPE_STACK = {
@@ -861,7 +865,7 @@ export const BUI_WIDGETS = [
     title: "Approval Card",
     when: "门卡流 · 活时",
     vs: "只在 Agent 还没写完、必须先问时出现。落定后再挂一张就没意义。",
-    scene: "写入笔记前先确认。不点，回合不往下走。",
+    scene: "写入笔记前先确认。先选一下，选完才往下写。",
   },
   {
     id: "rec",
@@ -872,10 +876,10 @@ export const BUI_WIDGETS = [
   },
   {
     id: "insight",
-    title: "Insight Cards",
+    title: "发现卡",
     when: "工具流 · 落定",
-    vs: "比方法卡更适合量化发现。方法卡讲「怎么做」，发现卡讲「你错在哪」。",
-    scene: "本周填空错 3 道，都栽在搭配。遏制 −2 · 抑制 0 · 遏止 −1。",
+    vs: "方法卡讲怎么做；发现卡讲你错在哪。条形 / 进度 / 曲线 / 对照四种画法。",
+    scene: "本周填空 3 道栽在搭配。对照这 3 道。",
   },
   {
     id: "filter",
@@ -896,39 +900,55 @@ export const FILTER_ROWS = [
 
 export const INSIGHTS = [
   {
-    kicker: "错因",
-    title: "本周逻辑填空错 3 道，都栽在「势头 / 苗头」搭配。",
-    delta: "搭配 −3",
+    viz: "bars" as const,
+    kicker: "发现",
+    title: "本周填空 3 道栽在「势头 / 苗头」搭配。",
+    hero: { n: "3", unit: "道" },
     tone: "risk" as const,
     rows: [
-      { name: "遏制", delta: "−2" },
-      { name: "抑制", delta: "0" },
-      { name: "遏止", delta: "−1" },
+      { name: "遏制", label: "2 道", value: 2 },
+      { name: "抑制", label: "没错过", value: 0 },
+      { name: "遏止", label: "1 道", value: 1 },
     ],
-    ask: "要不要对照近义干扰表？",
+    ask: "对照这 3 道",
   },
   {
-    kicker: "卷况",
-    title: "言语正确率 61%，低于判断 78%。填空是唯一掉队的模块。",
-    delta: "填空 61%",
+    viz: "progress" as const,
+    kicker: "发现",
+    title: "今日计划还差 2 道「萌芽 / 苗头」旧题。",
+    hero: { n: "1", unit: "/ 3" },
+    tone: "ai" as const,
+    progress: 1 / 3,
+    rows: [
+      { name: "已做", label: "1 道", value: 1 },
+      { name: "还差", label: "2 道", value: 2 },
+    ],
+    ask: "抽 2 道旧题",
+  },
+  {
+    viz: "curve" as const,
+    kicker: "发现",
+    title: "近 7 天填空正确率在往上走。",
+    hero: { n: "61", unit: "%" },
+    tone: "ai" as const,
+    series: [48, 50, 47, 52, 55, 58, 61],
+    rows: [
+      { name: "周一", label: "48%", value: 48 },
+      { name: "今天", label: "61%", value: 61 },
+    ],
+    ask: "看这周填空",
+  },
+  {
+    viz: "compare" as const,
+    kicker: "发现",
+    title: "填空是唯一掉队的模块。",
+    hero: { n: "61", unit: "%" },
     tone: "warn" as const,
     rows: [
-      { name: "判断", delta: "78%" },
-      { name: "言语", delta: "61%" },
-      { name: "资料", delta: "74%" },
+      { name: "判断", label: "78%", value: 78 },
+      { name: "言语", label: "61%", value: 61 },
+      { name: "资料", label: "74%", value: 74 },
     ],
-    ask: "先补填空还是继续混练？",
-  },
-  {
-    kicker: "计划",
-    title: "今日计划还差 2 道宾语是「萌芽 / 苗头」的旧题。",
-    delta: "还差 2 道",
-    tone: "ai" as const,
-    rows: [
-      { name: "已做", delta: "1" },
-      { name: "待做", delta: "2" },
-      { name: "对照表", delta: "开" },
-    ],
-    ask: "现在抽 2 道旧题？",
+    ask: "先补填空",
   },
 ] as const;

@@ -962,7 +962,7 @@ export function ProposalCard({
   if (!open) {
     return (
       <button type="button" className="sk-approve-reopen" onClick={() => setOpen(true)}>
-        打开审批
+        再问一次
       </button>
     );
   }
@@ -970,7 +970,7 @@ export function ProposalCard({
   return (
     <div className="sk-approve" data-testid="ai-approval-card" data-blocking={blocking ? "true" : "false"}>
       {blocking && sent == null ? (
-        <p className="sk-approve-live">回合停住 · 确认后才生成</p>
+        <p className="sk-approve-live">先选一下，选完才往下写</p>
       ) : null}
       {sent ? (
         <div className="sk-approve-done">
@@ -987,7 +987,7 @@ export function ProposalCard({
           <div className="sk-approve-top">
             <div className="sk-approve-copy">
               <div className="sk-approve-head">
-                <KindTag kind="action" label="审批" />
+                <KindTag kind="action" label="确认" />
                 <span className="sk-approve-q">{question.q}</span>
               </div>
               {question.hint ? <span className="sk-approve-hint">{question.hint}</span> : null}
@@ -995,7 +995,7 @@ export function ProposalCard({
             <button
               type="button"
               className="sk-approve-x"
-              aria-label="收起审批"
+              aria-label="收起"
               onClick={() => setOpen(false)}
             >
               <X size={14} strokeWidth={2.2} />
@@ -1109,7 +1109,7 @@ function ProposalSpecimen({
   if (specimen === "reopen") {
     return (
       <button type="button" className="sk-approve-reopen">
-        打开审批
+        再问一次
       </button>
     );
   }
@@ -1139,12 +1139,12 @@ function ProposalSpecimen({
       data-specimen={specimen}
       data-blocking={blocking ? "true" : "false"}
     >
-      {blocking ? <p className="sk-approve-live">回合停住 · 确认后才生成</p> : null}
+      {blocking ? <p className="sk-approve-live">先选一下，选完才往下写</p> : null}
       <div className="sk-approve-pad">
         <div className="sk-approve-top">
           <div className="sk-approve-copy">
             <div className="sk-approve-head">
-              <KindTag kind="action" label="审批" />
+              <KindTag kind="action" label="确认" />
               <span className="sk-approve-q">{title}</span>
             </div>
             <span className="sk-approve-hint">{reason}</span>
@@ -1543,25 +1543,79 @@ export function FilterTable({ empty = false }: { readonly empty?: boolean } = {}
   );
 }
 
+function InsightCurve({ series }: { readonly series: readonly number[] }) {
+  const w = 280;
+  const h = 64;
+  const min = Math.min(...series);
+  const max = Math.max(...series);
+  const span = Math.max(1, max - min);
+  const pts = series.map((v, i) => {
+    const x = (i / Math.max(1, series.length - 1)) * w;
+    const y = h - 6 - ((v - min) / span) * (h - 12);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+  const line = pts.join(" ");
+  return (
+    <svg className="sk-insight-curve" viewBox={`0 0 ${w} ${h}`} role="img" aria-hidden="true">
+      <polyline className="sk-insight-curve-fill" points={`0,${h} ${line} ${w},${h}`} />
+      <polyline className="sk-insight-curve-line" points={line} fill="none" />
+    </svg>
+  );
+}
+
+function InsightViz({ card }: { readonly card: (typeof INSIGHTS)[number] }) {
+  if (card.viz === "curve" && "series" in card && card.series) {
+    return <InsightCurve series={card.series} />;
+  }
+  if (card.viz === "progress" && "progress" in card) {
+    const pct = Math.round((card.progress ?? 0) * 100);
+    return (
+      <div
+        className="sk-insight-progress"
+        role="progressbar"
+        aria-valuenow={pct}
+        aria-valuemin={0}
+        aria-valuemax={100}
+      >
+        <span style={{ width: `${pct}%` }} />
+      </div>
+    );
+  }
+  const peak = Math.max(1, ...card.rows.map((row) => row.value));
+  return (
+    <ul className="sk-insight-rows" data-viz={card.viz}>
+      {card.rows.map((row) => (
+        <li key={row.name}>
+          <span className="sk-insight-name">{row.name}</span>
+          <span className="sk-insight-val">{row.label}</span>
+          <span
+            className="sk-insight-bar"
+            aria-hidden="true"
+            style={{ width: `${Math.max(8, (row.value / peak) * 100)}%` }}
+          />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function InsightCards({ empty = false }: { readonly empty?: boolean } = {}) {
   const [i, setI] = useState(0);
   if (empty) {
     return (
       <div className="sk-insight" data-testid="ai-insight-cards" data-empty="true">
         <div className="sk-insight-top">
-          <span className="sk-insight-kicker">发现 0</span>
+          <KindTag kind="data" label="发现" />
         </div>
-        <p className="sk-insight-empty">这一轮没有量化发现</p>
+        <p className="sk-insight-empty">这一轮没有新的错因</p>
       </div>
     );
   }
   const card = INSIGHTS[i];
-  const nums = card.rows.map((row) => Math.abs(Number(String(row.delta).replace(/[^0-9.]/g, "")) || 0));
-  const peak = Math.max(1, ...nums);
   return (
-    <div className="sk-insight" data-testid="ai-insight-cards" data-tone={card.tone}>
+    <div className="sk-insight" data-testid="ai-insight-cards" data-tone={card.tone} data-viz={card.viz}>
       <div className="sk-insight-top">
-        <span className="sk-insight-kicker">发现 {INSIGHTS.length}</span>
+        <KindTag kind={card.tone === "ai" ? "data" : card.tone === "risk" ? "action" : "suggest"} label="发现" />
         <span className="sk-insight-pager">
           <button
             type="button"
@@ -1586,24 +1640,16 @@ export function InsightCards({ empty = false }: { readonly empty?: boolean } = {
           </button>
         </span>
       </div>
-      <div className="sk-insight-body" key={card.kicker}>
-        <KindTag kind={card.tone === "ai" ? "data" : card.tone === "risk" ? "action" : "suggest"} label={card.kicker} />
+      <div className="sk-insight-body" key={card.title}>
         <p className="sk-insight-title">{card.title}</p>
-        <span className="sk-insight-delta">{card.delta}</span>
-        <ul className="sk-insight-rows">
-          {card.rows.map((row, idx) => (
-            <li key={row.name}>
-              <span className="sk-insight-name">{row.name}</span>
-              <span className="sk-insight-val">{row.delta}</span>
-              <span
-                className="sk-insight-bar"
-                aria-hidden="true"
-                style={{ width: `${Math.max(18, (nums[idx] / peak) * 100)}%` }}
-              />
-            </li>
-          ))}
-        </ul>
-        <p className="sk-insight-ask">{card.ask}</p>
+        <p className="sk-insight-hero">
+          <strong>{card.hero.n}</strong>
+          <span>{card.hero.unit}</span>
+        </p>
+        <InsightViz card={card} />
+        <button type="button" className="sk-insight-cta">
+          {card.ask}
+        </button>
       </div>
     </div>
   );
@@ -1767,7 +1813,7 @@ function copyFor(density: DensityId, phase: StreamPhase): string {
   if (phase === "waiting") {
     return density === "short" ? "正在想" : "正在对照近义干扰";
   }
-  if (phase === "live" && density === "gate") return "等待确认";
+  if (phase === "live" && density === "gate") return "等你选";
   if (phase === "live" && density !== "short") return "正在检索";
   if (phase === "recover") return "恢复中";
   if (phase === "halt") return "正在停止";
