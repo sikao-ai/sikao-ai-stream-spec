@@ -8,9 +8,9 @@ export const NAV_GROUPS: ReadonlyArray<{
   hint: string;
 }> = [
   { id: "guide", label: "导览", hint: "从哪读起" },
-  { id: "turn", label: "对话", hint: "一轮 agent 长什么样" },
+  { id: "turn", label: "回合渲染器", hint: "Claude 式一轮怎么画" },
   { id: "parts", label: "组件", hint: "零件细节，不是整轮" },
-  { id: "rules", label: "规则", hint: "红线、色板、票矩阵" },
+  { id: "rules", label: "规则", hint: "红线、色板、矩阵" },
 ];
 
 export const SECTIONS: ReadonlyArray<{
@@ -20,7 +20,7 @@ export const SECTIONS: ReadonlyArray<{
   group: NavGroupId;
 }> = [
   { id: "overview", label: "总览", kicker: "SSOT", group: "guide" },
-  { id: "playground", label: "一轮", kicker: "Turn", group: "turn" },
+  { id: "playground", label: "回合", kicker: "Turn", group: "turn" },
   { id: "density", label: "四密", kicker: "Density", group: "turn" },
   { id: "dock", label: "壳", kicker: "Dock", group: "turn" },
   { id: "families", label: "五族", kicker: "Chips", group: "parts" },
@@ -142,15 +142,38 @@ export const TURN_STATUS = {
  * 活时专家栈（lucide chips）保留；正文结束后同一状态行折叠出多步骤。
  */
 export const AGENT_STREAM = {
-  title: "Agent 对话一轮",
-  live: "工作时：Dots 状态行自己一行；专家栈 lucide chips 自己一行，只露图标，新的从右顶走。不展开多步骤。gate 活时是 Approval，不是 chips。",
-  streaming: "出字：专家栈收起。Dots 生成中。正文通栏无框，打字机沿用现网。",
+  title: "回合渲染器",
+  live: "工作时：回合态（Dots）自己一行；专家栈 lucide 自己一行。不展开多步骤。gate 活时是 Approval，不是专家栈。",
+  streaming: "出字：专家栈收起。回合态 stream。正文通栏无框，现网 StreamingProse。",
   settled:
-    "正文结束后：状态行「已完成」+ 时长可折叠。点开看多步骤（思考 / 检索 / 读 / 写），不对每步打勾。芯片不删数据，只是换成折叠里的步骤列。",
-  stop: "停止：Dots stop +「已停止生成」。已写出的正文保留。多步骤仍可从折叠打开。",
-  error: "失败：Dots error + 重试。不对已成功步骤打叉覆盖。",
-  order: "用户泡 →（讲题：题面）→ Dots 行 →（活时专家栈 | 活时 Approval）→ 正文 →（落定控件）→ 脚印",
+    "正文结束后：回合态「已完成」可折叠。点开是多步骤（思考块 / 工具调用），不对每步打勾。专家栈不删数据，折进多步骤。",
+  stop: "停止：回合态 stop。已写出的正文保留。多步骤仍可打开。",
+  error: "失败：回合态 error + 重试。不对已成功工具调用打叉。",
+  order: "用户泡 →（讲题：题面）→ 回合态 →（专家栈 | Approval）→ 正文 → 多步骤折叠 → 落定控件 → 脚印",
 } as const;
+
+/** 回合渲染器词表。与产品 CONTEXT.md「AI and billing」同锁。Claude content block 对齐。 */
+export const RENDERER_TERMS: ReadonlyArray<{
+  name: string;
+  en: string;
+  maps: string;
+  not: string;
+}> = [
+  { name: "回合渲染器", en: "Turn renderer", maps: "Claude content-block renderer / assistant-ui Message", not: "整页 chat UI；专家栈当整轮" },
+  { name: "回合", en: "Turn", maps: "one assistant message with many blocks", not: "Run；activity；Answer Session" },
+  { name: "内容块", en: "Content block", maps: "Claude thinking | tool_use | text", not: "Paper Block" },
+  { name: "思考块", en: "Thinking block", maps: "Claude thinking", not: "UI 写 chain-of-thought" },
+  { name: "工具调用", en: "Tool call", maps: "Claude tool_use", not: "专家芯片当工具名" },
+  { name: "工具结果", en: "Tool result", maps: "Claude tool_result", not: "逐步绿勾" },
+  { name: "正文", en: "Assistant text", maps: "Claude text / StreamingProse", not: "assistant bubble" },
+  { name: "专家栈", en: "Expert rail", maps: "live lucide chips only", not: "落定多步骤；第六族" },
+  { name: "多步骤", en: "Step log", maps: "Grok Worked-for fold / Claude tool list", not: "活时专家栈" },
+  { name: "回合态", en: "Turn status", maps: "Dots + copy + elapsed", not: "StatusBadge 绿勾" },
+  { name: "输入条", en: "Composer", maps: "Claude/ChatGPT composer", not: "PromptList" },
+  { name: "脚印", en: "Footprint", maps: "end-of-turn actions", not: "塞进多步骤" },
+  { name: "引用", en: "Cite", maps: "inline [n] float", not: "结果页扫卡进回合" },
+  { name: "用户泡", en: "User bubble", maps: "user message chrome only", not: "包住正文" },
+];
 
 /**
  * Dots 投影 1040 DurableAttachmentState + ExecutionTerminal。
