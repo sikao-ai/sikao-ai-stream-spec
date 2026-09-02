@@ -27,6 +27,7 @@ import {
   HITL,
   LOOKBACK_SOURCE,
   NAV_GROUPS,
+  RENDERER_TERMS,
   RULES,
   SAP_SOURCES,
   SECTIONS,
@@ -198,9 +199,40 @@ function Overview() {
         <span className="spec-kicker">sikao-ai / sikao · SIK-741</span>
         <h1 className="spec-h1">四密五族，不再发明皮肤</h1>
         <p className="spec-lede">
-          左侧分组：对话看一轮长什么样；组件看零件；规则看红线/色板/矩阵。一轮骨架：用户泡 → Dots → 工作时专家栈 → 正文 → 正文后多步骤折叠 → 落定控件。四密只加减块。
+          左侧：回合渲染器看怎么画一整轮；组件看零件；规则看红线/色板/矩阵。骨架：{AGENT_STREAM.order}
         </p>
       </header>
+
+      <section>
+        <h2 className="spec-h2">回合渲染器词表</h2>
+        <p className="spec-meta">对齐 Claude content block（thinking / tool_use / text）与 Grok 多步骤折叠。产品 CONTEXT.md 同锁。</p>
+        <div className="spec-table-wrap">
+          <table className="spec-table">
+            <thead>
+              <tr>
+                <th>锁定名</th>
+                <th>English</th>
+                <th>对标</th>
+                <th>不要叫</th>
+              </tr>
+            </thead>
+            <tbody>
+              {RENDERER_TERMS.map((row) => (
+                <tr key={row.en}>
+                  <td>
+                    <strong>{row.name}</strong>
+                  </td>
+                  <td>
+                    <code>{row.en}</code>
+                  </td>
+                  <td>{row.maps}</td>
+                  <td>{row.not}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       <section>
         <h2 className="spec-h2">四种密度 · 同一套 token</h2>
@@ -323,7 +355,7 @@ function DensityPage() {
         <DensityPicker value={density} onChange={setDensity} />
       </header>
       <div className="spec-seg spec-seg-quiet" role="tablist" aria-label="阶段">
-        {(["waiting", "live", "streaming", "settled"] as const).map((p) => (
+        {(["waiting", "live", "streaming", "settled", "stop", "error"] as const).map((p) => (
           <button
             key={p}
             type="button"
@@ -950,6 +982,13 @@ function Playground() {
     run(0);
   }
 
+  function stopTurn() {
+    if (!busy) return;
+    clearTimers();
+    setPhase("stop");
+    setBusy(false);
+  }
+
   function resumeGate() {
     setPhase("streaming");
     setLog((prev) => [
@@ -977,8 +1016,8 @@ function Playground() {
   return (
     <div className="spec-page">
       <header className="spec-hero">
-        <span className="spec-kicker">compose · density first</span>
-        <h1 className="spec-h1">一轮完整 agent 对话</h1>
+        <span className="spec-kicker">turn renderer</span>
+        <h1 className="spec-h1">回合渲染器</h1>
         <p className="spec-lede">
           {AGENT_STREAM.order} 工作时用专家栈 lucide 条；正文结束后同一状态行折叠出多步骤。门卡流活时停住等审批，点完才出正文；落定推荐卡不挡下一问。
         </p>
@@ -1013,6 +1052,20 @@ function Playground() {
           <TurnStatusLine state="error" copy="" status="error" />
           <ErrorBand />
         </Frame>
+        <Frame title="正在停止" kicker="halt">
+          <TurnStatusLine state="halt" copy="" status="halt" time="4s" />
+        </Frame>
+        <Frame title="续看" kicker="recover">
+          <TurnStatusLine state="recover" copy="" status="recover" />
+        </Frame>
+        <Frame title="活时门" kicker="gate">
+          <TurnStatusLine state="wait" copy="等待确认" time="4s" />
+          <ProposalCard
+            blocking
+            title="写入笔记前先确认"
+            reason="接下来会把「遏制势头 / 抑制萌芽」记进今日计划。"
+          />
+        </Frame>
       </div>
 
       <div className="spec-preview-frame">
@@ -1045,37 +1098,16 @@ function Playground() {
           value={input}
           onChange={setInput}
           onSend={() => send(input)}
+          onStop={stopTurn}
           busy={busy}
         />
-      </div>
-      <div className="spec-split">
-        <Frame title="工作时 · 专家栈" kicker="lucide 条">
-          <TurnStatusLine
-            state="tool"
-            copy="正在检索"
-            time="4s"
-            rail={<LiveExpertPlayback />}
-          />
-        </Frame>
-        <Frame title="正文后 · 多步骤" kicker="点开查看">
-          <TurnStatusLine
-            state="done"
-            copy=""
-            status="done"
-            time="6s"
-            foldable
-          >
-            <OpRow op="thought" text="先看搭配对象是「势头」，不是「情绪」。" />
-            <OpRow op="search" text="检索近义干扰 · 遏制 / 遏止 / 抑制" elapsed="1.2s" />
-            <OpRow op="read" text="打开近义干扰表" elapsed="0.4s" />
-            <OpRow op="write" text="写入对照笔记" elapsed="0.6s" />
-          </TurnStatusLine>
-        </Frame>
       </div>
       <div className="spec-note">
         <p>{AGENT_STREAM.live}</p>
         <p>{AGENT_STREAM.streaming}</p>
         <p>{AGENT_STREAM.settled}</p>
+        <p>{AGENT_STREAM.stop}</p>
+        <p>{AGENT_STREAM.error}</p>
       </div>
       <Frame title="结果页 · Perplexity 扫描" kicker="不是对话气泡">
         <PplxResult
@@ -1637,7 +1669,7 @@ export function SpecApp() {
             {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
             {theme === "dark" ? "浅色" : "深色"}
           </button>
-          <p className="spec-meta">对话看一轮。零件看组件。约束看规则。</p>
+          <p className="spec-meta">回合渲染器 · 组件 · 规则</p>
         </div>
       </aside>
       <header className="spec-topbar">

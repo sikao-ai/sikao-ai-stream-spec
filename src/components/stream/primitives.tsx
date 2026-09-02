@@ -37,7 +37,15 @@ import { EXPERTS, FILTER_ROWS, INSIGHTS, LOOKBACK_KICKER, LOOKBACK_SOURCE, SAP_S
 export type TurnKind = "user" | "process" | "answer" | "effect" | "error";
 export type KindTagKind = "action" | "suggest" | "input" | "data";
 export type StatusTagTone = "ok" | "ai" | "neutral" | "risk";
-export type StreamPhase = "waiting" | "live" | "streaming" | "settled";
+export type StreamPhase =
+  | "waiting"
+  | "live"
+  | "streaming"
+  | "settled"
+  | "stop"
+  | "error"
+  | "recover"
+  | "halt";
 export type DotsState = "wait" | "tool" | "stream" | "recover" | "halt" | "done" | "stop" | "error";
 export type OpKind = "thought" | "search" | "read" | "write" | "code" | "tool";
 export type RoundStatus = "done" | "stream" | "stop" | "halt" | "error" | "recover" | null;
@@ -1664,7 +1672,17 @@ function AnswerBody({
     setCiteAnchor(null);
   }, []);
 
-  if (phase === "waiting" || phase === "live") return null;
+  if (phase === "waiting" || phase === "live" || phase === "recover" || phase === "halt") {
+    return null;
+  }
+
+  if (phase === "error") {
+    return (
+      <TurnBlock kind="error">
+        <ErrorBand />
+      </TurnBlock>
+    );
+  }
 
   const showCited = cited && phase === "settled";
   const openCite = (n: number, el: HTMLButtonElement) => {
@@ -1693,7 +1711,7 @@ function AnswerBody({
         </AssistantProse>
         {phase === "settled" && extra}
         {phase === "settled" && widgets ? <div className="sk-turn-widgets">{widgets}</div> : null}
-        {phase === "settled" ? (
+        {phase === "settled" || phase === "stop" ? (
           <AnswerFootprint
             sourceCount={sources.length}
             sourcesOn={listOpen}
@@ -1729,6 +1747,10 @@ function dotsFor(density: DensityId, phase: StreamPhase): DotsState {
   if (phase === "live" && density === "gate") return "wait";
   if (phase === "live") return "tool";
   if (phase === "streaming") return "stream";
+  if (phase === "stop") return "stop";
+  if (phase === "error") return "error";
+  if (phase === "recover") return "recover";
+  if (phase === "halt") return "halt";
   return "done";
 }
 
@@ -1738,12 +1760,18 @@ function copyFor(density: DensityId, phase: StreamPhase): string {
   }
   if (phase === "live" && density === "gate") return "等待确认";
   if (phase === "live" && density !== "short") return "正在检索";
+  if (phase === "recover") return "恢复中";
+  if (phase === "halt") return "正在停止";
   return "";
 }
 
 function roundFor(phase: StreamPhase): RoundStatus {
   if (phase === "streaming") return "stream";
   if (phase === "settled") return "done";
+  if (phase === "stop") return "stop";
+  if (phase === "error") return "error";
+  if (phase === "recover") return "recover";
+  if (phase === "halt") return "halt";
   return null;
 }
 
@@ -1751,7 +1779,7 @@ function timeFor(density: DensityId, phase: StreamPhase): string | undefined {
   if (phase === "waiting" || phase === "live") {
     return density === "short" ? undefined : "4s";
   }
-  if (phase === "settled" && density !== "short") return "6s";
+  if ((phase === "settled" || phase === "stop") && density !== "short") return "6s";
   return undefined;
 }
 
@@ -1793,7 +1821,7 @@ export function DensityStream({
   const sources: readonly SourceCard[] = density === "short" ? [] : SAP_SOURCES.slice(0, 2);
   const hasProcess = density !== "short";
   const showChips = hasProcess && density !== "gate" && phase === "live";
-  const showStepFold = hasProcess && phase === "settled";
+  const showStepFold = hasProcess && (phase === "settled" || phase === "stop");
   const widgets =
     density === "teach" ? (
       <>
@@ -1858,10 +1886,13 @@ export function DensityStream({
         cited={density !== "short"}
         extra={
           density === "short" || phase !== "settled" ? null : (
-            <div className="sk-lookback">
-              <span className="sk-lookback-kicker">{LOOKBACK_KICKER}</span>
-              <ContextCard item={LOOKBACK_SOURCE} numbered={false} />
-            </div>
+            <>
+              <div className="sk-lookback">
+                <span className="sk-lookback-kicker">{LOOKBACK_KICKER}</span>
+                <ContextCard item={LOOKBACK_SOURCE} numbered={false} />
+              </div>
+              <PromptList items={["为什么不能选遏制", "对比近义", "做成今日计划"]} />
+            </>
           )
         }
         widgets={phase === "settled" ? widgets : null}
@@ -1886,11 +1917,13 @@ export function ComposerBar({
   value,
   onChange,
   onSend,
+  onStop,
   busy,
 }: {
   readonly value: string;
   readonly onChange: (v: string) => void;
   readonly onSend: () => void;
+  readonly onStop?: () => void;
   readonly busy: boolean;
 }) {
   const dockOpen = useAppStore((s) => s.dockOpen);
@@ -1900,7 +1933,7 @@ export function ComposerBar({
       className="spec-composer"
       onSubmit={(e) => {
         e.preventDefault();
-        onSend();
+        if (!busy) onSend();
       }}
     >
       <SceneAiChip size={32} expanded={dockOpen} onClick={() => setDockOpen(!dockOpen)} />
@@ -1912,13 +1945,20 @@ export function ComposerBar({
         onKeyDown={(e) => {
           if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
-            onSend();
+            if (busy) onStop?.();
+            else onSend();
           }
         }}
       />
-      <button type="submit" className="spec-send" disabled={busy || value.trim().length === 0}>
-        发送
-      </button>
+      {busy && onStop ? (
+        <button type="button" className="spec-send" onClick={onStop}>
+          停止
+        </button>
+      ) : (
+        <button type="submit" className="spec-send" disabled={value.trim().length === 0}>
+          发送
+        </button>
+      )}
     </form>
   );
 }
