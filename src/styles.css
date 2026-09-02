@@ -1808,6 +1808,12 @@ button.sk-status-line {
   color: var(--color-ai);
 }
 
+.sk-foot-src {
+  margin-left: 2px;
+  font-size: var(--font-tiny);
+  font-variant-numeric: tabular-nums;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .sk-icon-btn:hover {
     background: var(--color-bg-sunken);

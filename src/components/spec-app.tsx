@@ -26,8 +26,9 @@ import {
   ENTRIES,
   EVENT_TO_BLOCK,
   FAMILIES,
+  FOOTPRINT_ACTIONS,
+  GAP_CONTRAST,
   HITL,
-  LANDING_GAPS,
   LOOKBACK_SOURCE,
   NAV_GROUPS,
   RENDERER_TERMS,
@@ -62,6 +63,7 @@ import type { DockHost } from "@/lib/ask-sikao";
 import {
   ActionChip,
   AiMark,
+  AnswerFootprint,
   AssistantProse,
   BanLoader,
   ComposerBar,
@@ -72,6 +74,7 @@ import {
   KindTag,
   LiveExpertPlayback,
   OpRow,
+  PplxSources,
   PplxResult,
   PplxSources,
   PromptList,
@@ -193,6 +196,28 @@ function StealSpecimen({ id }: { readonly id: (typeof STEALS)[number]["id"] }) {
   }
 }
 
+function FootprintSpecimen() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="sk-answer-shell sk-answer-stack">
+      <AssistantProse>
+        <p>「遏制」管已起的势头，语气偏硬。</p>
+      </AssistantProse>
+      <AnswerFootprint
+        sourceCount={SAP_SOURCES.length}
+        sourcesOn={open}
+        onSources={() => setOpen((v) => !v)}
+      />
+      {open ? (
+        <div className="sk-src-after">
+          <span className="sk-stem-kicker">来源</span>
+          <PplxSources items={SAP_SOURCES} />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function Overview() {
   const setSection = useAppStore((s) => s.setSection);
   const setDensity = useAppStore((s) => s.setDensity);
@@ -303,30 +328,54 @@ function Overview() {
       </section>
 
       <section>
-        <h2 className="spec-h2">离落地还差什么</h2>
-        <p className="spec-meta">缺任一项，sikao 执行不得把 1068 当完整回合渲染器 Done。</p>
+        <h2 className="spec-h2">缺口对照</h2>
+        <p className="spec-meta">
+          执行只抄「原型」列。产品列是现状，不是第二套设计。缺任一项不得把 1068 当完整回合渲染器 Done。
+        </p>
         <div className="spec-table-wrap">
           <table className="spec-table">
             <thead>
               <tr>
+                <th>id</th>
                 <th>缺口</th>
-                <th>必须有</th>
-                <th>为什么现在抄不了</th>
+                <th>原型（抄这个）</th>
+                <th>产品仓现状</th>
               </tr>
             </thead>
             <tbody>
-              {LANDING_GAPS.map((row) => (
+              {GAP_CONTRAST.map((row) => (
                 <tr key={row.id}>
                   <td>
                     <code>{row.id}</code>
                   </td>
-                  <td>{row.need}</td>
-                  <td>{row.why}</td>
+                  <td>{row.gap}</td>
+                  <td>{row.prototype}</td>
+                  <td>{row.product}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+        <h3 className="spec-h3 spec-h3-gap">脚印动作</h3>
+        <div className="spec-table-wrap">
+          <table className="spec-table">
+            <thead>
+              <tr>
+                <th>动作</th>
+                <th>何时出现</th>
+              </tr>
+            </thead>
+            <tbody>
+              {FOOTPRINT_ACTIONS.map((row) => (
+                <tr key={row.id}>
+                  <td>{row.label}</td>
+                  <td>{row.when}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="spec-meta spec-h3-gap">{AGENT_STREAM.footprint}</p>
       </section>
 
       <section>
@@ -1161,6 +1210,9 @@ function Playground() {
             reason="接下来会把「遏制势头 / 抑制萌芽」记进今日计划。"
           />
         </Frame>
+        <Frame title="脚印" kicker="footer">
+          <FootprintSpecimen />
+        </Frame>
       </div>
 
       <div className="spec-preview-frame">
@@ -1203,6 +1255,7 @@ function Playground() {
         <p>{AGENT_STREAM.settled}</p>
         <p>{AGENT_STREAM.stop}</p>
         <p>{AGENT_STREAM.error}</p>
+        <p>{AGENT_STREAM.footprint}</p>
       </div>
       <Frame title="结果页 · Perplexity 扫描" kicker="不是对话气泡">
         <PplxResult

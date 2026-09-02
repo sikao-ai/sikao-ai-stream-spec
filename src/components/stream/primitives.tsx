@@ -431,6 +431,7 @@ export function AnswerFootprint({
             onClick={onSources}
           >
             <Quote size={14} />
+            <span className="sk-foot-src">{sourceCount}</span>
           </button>
         ) : null}
         <button type="button" className="sk-icon-btn" aria-label="回放">
