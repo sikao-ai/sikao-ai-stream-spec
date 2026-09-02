@@ -61,6 +61,8 @@
   --line-height-card: 1.5;
   --line-height-meta: 1.4;
   --line-height-tiny: 1.4;
+  --turn-icon: 16px;
+  --turn-lead-gap: 6px;
   --font-weight-regular: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
@@ -1307,7 +1309,7 @@ body {
 .sk-status-line {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--turn-lead-gap);
   width: 100%;
   min-width: 0;
   min-height: 28px;
@@ -1321,8 +1323,8 @@ body {
 
 .sk-op-row {
   display: grid;
-  grid-template-columns: 15px minmax(0, 1fr) auto;
-  column-gap: var(--space-2);
+  grid-template-columns: var(--turn-icon) minmax(0, 1fr) auto;
+  column-gap: var(--turn-lead-gap);
   align-items: center;
   width: 100%;
   min-width: 0;
@@ -1341,7 +1343,7 @@ button.sk-status-line {
 .sk-status-lead {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--turn-lead-gap);
   min-width: 0;
   font-size: var(--font-meta);
   line-height: var(--line-height-meta);
@@ -1399,7 +1401,7 @@ button.sk-status-line {
   width: 100%;
   min-width: 0;
   min-height: 28px;
-  padding-left: calc(16px + 6px);
+  padding-left: 0;
 }
 
 .sk-pixel-grid {
@@ -1567,8 +1569,8 @@ button.sk-status-line {
 }
 
 .sk-op-icon {
-  width: 15px;
-  height: 15px;
+  width: var(--turn-icon);
+  height: var(--turn-icon);
   display: grid;
   place-items: center;
   color: var(--color-text-meta);
@@ -2668,14 +2670,13 @@ button.sk-status-line {
 
 .sk-approve-head {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
   min-width: 0;
 }
 
 .sk-approve-head .sk-ktag {
   flex-shrink: 0;
-  margin-top: 2px;
 }
 
 .sk-approve-q {

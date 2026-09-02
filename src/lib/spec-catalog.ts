@@ -552,11 +552,29 @@ export const LAYOUT_SCALE: ReadonlyArray<{
   { slot: "用户泡", desktop: "max 82%，右对齐，pad 8 12，r 12/12/5/12", mobile: "max 88%，pad 8 12", ios: "max 88%，pad 8 12" },
   { slot: "回合态行", desktop: "高 28，Dots 16，gap 6", mobile: "高 28，Dots 16", ios: "高 32，Dots 16" },
   { slot: "专家栈", desktop: "芯片 22，间距 6，自己一行", mobile: "同左，可横滑", ios: "芯片 28 触控，横滑" },
-  { slot: "多步骤行", desktop: "高 22，lucide 15，列 gap 8", mobile: "高 24", ios: "高 28，lucide 15" },
+  { slot: "多步骤行", desktop: "高 22，lucide 槽 16，列 gap 6", mobile: "高 24", ios: "高 28，lucide 槽 16" },
   { slot: "正文", desktop: "通栏无框，段间距 8", mobile: "同左", ios: "同左" },
   { slot: "Approval / 推荐卡", desktop: "sunken，内边距 16，主钮高 32", mobile: "通栏，主钮高 44", ios: "通栏，主钮高 44" },
   { slot: "脚印", desktop: "高 28，hover 才拉满对比", mobile: "高 44 触控，常显", ios: "高 44，常显" },
   { slot: "输入条", desktop: "高 40，圆 12", mobile: "高 44", ios: "高 44，键盘避让" },
+];
+
+/**
+ * 双轴对齐。X = 左缘/右缘；Y = 行中心或数字 baseline。
+ * --turn-icon 16px 是 Dots / lucide / 首芯片的同一列。
+ */
+export const ALIGN_RULES: ReadonlyArray<{
+  slot: string;
+  x: string;
+  y: string;
+}> = [
+  { slot: "回合态", x: "Dots 左 = 正文左；时长右 = 列右", y: "Dots / 文案 / 时长 / chevron 同一行垂直中心" },
+  { slot: "专家栈", x: "首芯片左 = Dots 左（--turn-icon 列）", y: "芯片垂直中心对齐" },
+  { slot: "多步骤", x: "lucide 槽 16 = Dots 列；耗时右齐时长", y: "lucide / 文案 / 耗时垂直中心" },
+  { slot: "确认卡", x: "KindTag 与问句同一行；选项左齐问句", y: "KindTag 与问句垂直中心；选项等高" },
+  { slot: "发现卡", x: "KindTag / 标题 / 数字 / 图 / CTA 左齐", y: "KindTag 与翻页中心；数字与单位 baseline" },
+  { slot: "推荐卡", x: "KindTag 与问句同一行；主建议与推荐度两端", y: "KindTag 与问句中心；推荐度与标题中心" },
+  { slot: "脚印", x: "图标行左齐正文；按钮等距", y: "图标垂直中心；来源数字与图标中心" },
 ];
 
 /** 回合文案锁。字面以 SIK-1066 1066.v4 为准；这里只列槽位。 */
@@ -752,7 +770,7 @@ export const RULES: ReadonlyArray<{ kind: "do" | "dont"; title: string; body: st
   {
     kind: "do",
     title: "回合排印锁 token",
-    body: "三壳对照色板页：Web 桌面 / Web 移动 / iOS Phone。Web 栈 DM Sans / Inter / Noto SC；iOS SF Pro + PingFang。正文桌面与 Web 移动 14/1.75，iOS Phone 16/1.75。最小 11px。不用 display/h1。",
+    body: "三壳对照色板页：Web 桌面 / Web 移动 / iOS Phone。双轴对齐见 ALIGN_RULES。Web 栈 DM Sans / Inter / Noto SC；iOS SF Pro + PingFang。正文字号只认三壳表。最小 11px。不用 display/h1。",
   },
 ];
 

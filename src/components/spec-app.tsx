@@ -34,6 +34,7 @@ import {
   TYPE_SURFACES,
   LAYOUT_SCALE,
   COPY_LOCK,
+  ALIGN_RULES,
   FOOTPRINT_ACTIONS,
   GAP_CONTRAST,
   HITL,
@@ -1009,6 +1010,28 @@ function TokensPage() {
                   <td>{row.desktop}</td>
                   <td>{row.mobile}</td>
                   <td>{row.ios}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <h3 className="spec-h3 spec-h3-gap">双轴对齐</h3>
+        <p className="spec-meta">X 管左缘/右缘，Y 管行中心。Dots、lucide、首芯片共用 --turn-icon 16px 列。</p>
+        <div className="spec-table-wrap">
+          <table className="spec-table">
+            <thead>
+              <tr>
+                <th>槽</th>
+                <th>X</th>
+                <th>Y</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ALIGN_RULES.map((row) => (
+                <tr key={row.slot}>
+                  <td>{row.slot}</td>
+                  <td>{row.x}</td>
+                  <td>{row.y}</td>
                 </tr>
               ))}
             </tbody>
