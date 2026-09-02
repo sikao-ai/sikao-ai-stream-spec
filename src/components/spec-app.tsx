@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { hydrateTheme, useAppStore, type DensityId, type SectionId } from "@/lib/app-store";
 import {
+  AGENT_STREAM,
   BANNED,
   BUI_WIDGETS,
   DENSITIES,
@@ -25,13 +26,13 @@ import {
   FAMILIES,
   HITL,
   LOOKBACK_SOURCE,
+  NAV_GROUPS,
   RULES,
   SAP_SOURCES,
   SECTIONS,
   STEALS,
   TOKENS,
   TURN_STATUS,
-  AGENT_STREAM,
 } from "@/lib/spec-catalog";
 import {
   CONTRACT_PATH,
@@ -57,6 +58,7 @@ import type { DockHost } from "@/lib/ask-sikao";
 import {
   ActionChip,
   AiMark,
+  AssistantProse,
   BanLoader,
   ComposerBar,
   ContextCard,
@@ -196,7 +198,7 @@ function Overview() {
         <span className="spec-kicker">sikao-ai / sikao · SIK-741</span>
         <h1 className="spec-h1">四密五族，不再发明皮肤</h1>
         <p className="spec-lede">
-          一轮 agent 对话：用户泡 → Dots →（工作时专家栈 lucide 条）→ 正文 →（正文后多步骤折叠）→ 落定控件。四密只加减块。控件只有五族。入口另槽。暗色只换 token，统一无描边。
+          左侧分组：对话看一轮长什么样；组件看零件；规则看红线/色板/矩阵。一轮骨架：用户泡 → Dots → 工作时专家栈 → 正文 → 正文后多步骤折叠 → 落定控件。四密只加减块。
         </p>
       </header>
 
@@ -976,12 +978,43 @@ function Playground() {
     <div className="spec-page">
       <header className="spec-hero">
         <span className="spec-kicker">compose · density first</span>
-        <h1 className="spec-h1">拼装：一轮完整 agent 对话</h1>
+        <h1 className="spec-h1">一轮完整 agent 对话</h1>
         <p className="spec-lede">
           {AGENT_STREAM.order} 工作时用专家栈 lucide 条；正文结束后同一状态行折叠出多步骤。门卡流活时停住等审批，点完才出正文；落定推荐卡不挡下一问。
         </p>
         <DensityPicker value={density} onChange={setDensity} />
       </header>
+
+      <div className="spec-gallery">
+        <Frame title="等待" kicker="waiting">
+          <TurnStatusLine state="wait" copy="正在想" />
+        </Frame>
+        <Frame title="工作时 · 专家栈" kicker="live">
+          <TurnStatusLine state="tool" copy="正在检索" time="4s" rail={<LiveExpertPlayback />} />
+        </Frame>
+        <Frame title="出字" kicker="streaming">
+          <TurnStatusLine state="stream" copy="" status="stream" />
+          <AssistantProse streaming>「遏制」管已起的势头，语气偏硬。</AssistantProse>
+        </Frame>
+        <Frame title="正文后 · 多步骤" kicker="settled">
+          <TurnStatusLine state="done" copy="" status="done" time="6s" foldable>
+            <OpRow op="thought" text="先看搭配对象是「势头」，不是「情绪」。" />
+            <OpRow op="search" text="检索近义干扰 · 遏制 / 遏止 / 抑制" elapsed="1.2s" />
+            <OpRow op="read" text="打开近义干扰表" elapsed="0.4s" />
+            <OpRow op="write" text="写入对照笔记" elapsed="0.6s" />
+          </TurnStatusLine>
+        </Frame>
+        <Frame title="已停止" kicker="stop">
+          <TurnStatusLine state="stop" copy="" status="stop" time="3s" foldable>
+            <OpRow op="search" text="检索近义干扰" elapsed="0.8s" />
+          </TurnStatusLine>
+        </Frame>
+        <Frame title="未确认" kicker="error">
+          <TurnStatusLine state="error" copy="" status="error" />
+          <ErrorBand />
+        </Frame>
+      </div>
+
       <div className="spec-preview-frame">
         <div className="spec-preview-head">
           <LayoutGrid size={14} />
@@ -1578,17 +1611,25 @@ export function SpecApp() {
           <kbd>⌘J</kbd>
         </button>
         <nav className="spec-nav-list" aria-label="规范章节">
-          {SECTIONS.map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              className="spec-nav-item"
-              data-active={s.id === section}
-              onClick={() => setSection(s.id)}
-            >
-              {ICONS[s.id]}
-              {s.label}
-            </button>
+          {NAV_GROUPS.map((group) => (
+            <div key={group.id} className="spec-nav-group">
+              <div className="spec-nav-group-label">
+                <span>{group.label}</span>
+                <span className="spec-nav-group-hint">{group.hint}</span>
+              </div>
+              {SECTIONS.filter((s) => s.group === group.id).map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  className="spec-nav-item"
+                  data-active={s.id === section}
+                  onClick={() => setSection(s.id)}
+                >
+                  {ICONS[s.id]}
+                  {s.label}
+                </button>
+              ))}
+            </div>
           ))}
         </nav>
         <div className="spec-nav-foot">
@@ -1596,7 +1637,7 @@ export function SpecApp() {
             {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
             {theme === "dark" ? "浅色" : "深色"}
           </button>
-          <p className="spec-meta">四密五族。无描边。暗色只换 token。</p>
+          <p className="spec-meta">对话看一轮。零件看组件。约束看规则。</p>
         </div>
       </aside>
       <header className="spec-topbar">

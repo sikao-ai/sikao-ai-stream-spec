@@ -1,20 +1,34 @@
 import type { DensityId, SectionId } from "./app-store";
 
+export type NavGroupId = "guide" | "turn" | "parts" | "rules";
+
+export const NAV_GROUPS: ReadonlyArray<{
+  id: NavGroupId;
+  label: string;
+  hint: string;
+}> = [
+  { id: "guide", label: "导览", hint: "从哪读起" },
+  { id: "turn", label: "对话", hint: "一轮 agent 长什么样" },
+  { id: "parts", label: "组件", hint: "零件细节，不是整轮" },
+  { id: "rules", label: "规则", hint: "红线、色板、票矩阵" },
+];
+
 export const SECTIONS: ReadonlyArray<{
   id: SectionId;
   label: string;
   kicker: string;
+  group: NavGroupId;
 }> = [
-  { id: "overview", label: "总览", kicker: "SSOT" },
-  { id: "density", label: "四密", kicker: "Density" },
-  { id: "families", label: "五族", kicker: "Chips" },
-  { id: "entry", label: "入口", kicker: "AiMark" },
-  { id: "sources", label: "来源", kicker: "Ground" },
-  { id: "matrix", label: "矩阵", kicker: "Canon" },
-  { id: "rules", label: "红线", kicker: "Contract" },
-  { id: "tokens", label: "色板", kicker: "1040" },
-  { id: "playground", label: "拼装", kicker: "Live" },
-  { id: "dock", label: "壳", kicker: "Dock" },
+  { id: "overview", label: "总览", kicker: "SSOT", group: "guide" },
+  { id: "playground", label: "一轮", kicker: "Turn", group: "turn" },
+  { id: "density", label: "四密", kicker: "Density", group: "turn" },
+  { id: "dock", label: "壳", kicker: "Dock", group: "turn" },
+  { id: "families", label: "五族", kicker: "Chips", group: "parts" },
+  { id: "entry", label: "入口", kicker: "AiMark", group: "parts" },
+  { id: "sources", label: "来源", kicker: "Ground", group: "parts" },
+  { id: "rules", label: "红线", kicker: "Contract", group: "rules" },
+  { id: "tokens", label: "色板", kicker: "1040", group: "rules" },
+  { id: "matrix", label: "矩阵", kicker: "Canon", group: "rules" },
 ];
 
 export const DENSITIES: ReadonlyArray<{
@@ -133,6 +147,8 @@ export const AGENT_STREAM = {
   streaming: "出字：专家栈收起。Dots 生成中。正文通栏无框，打字机沿用现网。",
   settled:
     "正文结束后：状态行「已完成」+ 时长可折叠。点开看多步骤（思考 / 检索 / 读 / 写），不对每步打勾。芯片不删数据，只是换成折叠里的步骤列。",
+  stop: "停止：Dots stop +「已停止生成」。已写出的正文保留。多步骤仍可从折叠打开。",
+  error: "失败：Dots error + 重试。不对已成功步骤打叉覆盖。",
   order: "用户泡 →（讲题：题面）→ Dots 行 →（活时专家栈 | 活时 Approval）→ 正文 →（落定控件）→ 脚印",
 } as const;
 
