@@ -29,6 +29,8 @@ import {
   HOST_MOUNT,
   TIMING_MATRIX,
   TURN_SLOTS,
+  TYPE_SCALE,
+  TYPE_STACK,
   FOOTPRINT_ACTIONS,
   GAP_CONTRAST,
   HITL,
@@ -948,9 +950,62 @@ function TokensPage() {
         <span className="spec-kicker">1040 状态机 · 点阵着色</span>
         <h1 className="spec-h1">暗色只开 token，统一无描边</h1>
         <p className="spec-lede">
-          近黑平面、单一 AI 蓝。点阵按 1040 终态上色。产品黄不进流。确认门深色用 warn-mid 混面。
+          近黑平面、单一 AI 蓝。点阵按 1040 终态上色。产品黄不进流。确认门深色用 warn-mid 混面。排印与产品 tokens 同栈。
         </p>
       </header>
+      <section>
+        <h2 className="spec-h2">字体</h2>
+        <p className="spec-meta">
+          UI：{TYPE_STACK.ui}。等宽：{TYPE_STACK.mono}。{TYPE_STACK.rules}
+        </p>
+        <div className="spec-type-ladder spec-h3-gap">
+          {TYPE_SCALE.map((row) => (
+            <div key={row.slot} className="spec-type-row">
+              <span className="spec-meta">{row.slot}</span>
+              <p
+                className="spec-type-sample"
+                data-family={row.family}
+                style={{
+                  fontSize: row.size,
+                  lineHeight: row.lh,
+                  fontWeight: row.weight,
+                  fontFamily: row.family === "mono" ? "var(--font-family-mono)" : "var(--font-family-ui)",
+                }}
+              >
+                遏制势头 · {row.size}/{row.lh}
+              </p>
+            </div>
+          ))}
+        </div>
+        <div className="spec-table-wrap spec-h3-gap">
+          <table className="spec-table">
+            <thead>
+              <tr>
+                <th>槽</th>
+                <th>token</th>
+                <th>字号</th>
+                <th>行高</th>
+                <th>字重</th>
+                <th>栈</th>
+              </tr>
+            </thead>
+            <tbody>
+              {TYPE_SCALE.map((row) => (
+                <tr key={row.token}>
+                  <td>{row.slot}</td>
+                  <td>
+                    <code>{row.token}</code>
+                  </td>
+                  <td>{row.size}</td>
+                  <td>{row.lh}</td>
+                  <td>{row.weight}</td>
+                  <td>{row.family}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
       <div className="spec-token-grid">
         {TOKENS.map((t) => (
           <div key={t.name} className="spec-swatch">

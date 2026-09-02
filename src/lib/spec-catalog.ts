@@ -493,6 +493,33 @@ export const HOST_MOUNT: ReadonlyArray<{
 ];
 
 /**
+ * 回合排印。栈对齐产品 tokens.css（DM Sans / Inter / Noto SC）。
+ * 正文行高 1.75 只给 Assistant text；UI 默认 body 仍是 1.6。
+ */
+export const TYPE_STACK = {
+  ui: 'DM Sans → Inter → Noto Sans SC → PingFang SC → YaHei',
+  mono: "JetBrains Mono",
+  rules: "CJK 禁止斜体。最小 --font-tiny 11px。回合不用 display/h1。产品黄不进流。",
+} as const;
+
+export const TYPE_SCALE: ReadonlyArray<{
+  slot: string;
+  token: string;
+  size: string;
+  lh: string;
+  weight: string;
+  family: string;
+}> = [
+  { slot: "正文", token: "--font-body / --line-height-prose", size: "14px", lh: "1.75", weight: "400", family: "ui" },
+  { slot: "用户泡", token: "--font-body / --line-height-user", size: "14px", lh: "1.7", weight: "400", family: "ui" },
+  { slot: "卡头（Approval / 推荐 / 方法）", token: "--font-card / --line-height-card", size: "16px", lh: "1.5", weight: "600", family: "ui" },
+  { slot: "回合态文案 · 多步骤行 · PromptList", token: "--font-meta / --line-height-meta", size: "12px", lh: "1.4", weight: "500", family: "ui" },
+  { slot: "KindTag · kicker · 脚印来源数字", token: "--font-tiny / --line-height-tiny", size: "11px", lh: "1.4", weight: "400", family: "ui" },
+  { slot: "elapsed 时长", token: "--font-tiny + mono", size: "11px", lh: "1.4", weight: "400", family: "mono" },
+  { slot: "输入条（非正文）", token: "--font-body / --line-height-body", size: "14px", lh: "1.6", weight: "400", family: "ui" },
+];
+
+/**
  * Dots 投影 1040 DurableAttachmentState + ExecutionTerminal。
  * 几何：4px 点、gap 2px、槽 16×16 整数格；色相按终态/中断/失败分。
  * 不新造 run 机，不把点阵画上 DurableRunStatusBar。
@@ -653,6 +680,11 @@ export const RULES: ReadonlyArray<{ kind: "do" | "dont"; title: string; body: st
     kind: "dont",
     title: "不要第 11 号字",
     body: "tiny = 11px 最小合法。CJK 禁止斜体。点阵 4px，gap 2px，槽 16×16（4×3+2×2 整数像素，行列对称）。",
+  },
+  {
+    kind: "do",
+    title: "回合排印锁 token",
+    body: "栈 DM Sans / Inter / Noto SC，等宽 JetBrains Mono。正文 14/1.75，用户泡 14/1.7，回合态与多步骤 12/1.4，时长 11 等宽。不用 display/h1。色板页 TYPE_SCALE 可抄。",
   },
 ];
 
