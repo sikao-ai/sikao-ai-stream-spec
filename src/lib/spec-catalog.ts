@@ -147,10 +147,25 @@ export const AGENT_STREAM = {
   streaming: "出字：专家栈收起。回合态 stream。正文通栏无框，现网 StreamingProse。",
   settled:
     "正文结束后：回合态「已完成」可折叠。点开是多步骤（思考块 / 工具调用），不对每步打勾。专家栈不删数据，折进多步骤。",
-  stop: "停止：回合态 stop。已写出的正文保留。多步骤仍可打开。",
-  error: "失败：回合态 error + 重试。不对已成功工具调用打叉。",
-  order: "用户泡 →（讲题：题面）→ 回合态 →（专家栈 | Approval）→ 正文 → 多步骤折叠 → 落定控件 → 脚印",
+  stop: "停止：回合态 stop。已写出的正文保留。多步骤仍可打开。脚印仍出（有正文）。",
+  error: "失败：回合态 error + 重试。不对已成功工具调用打叉。无正文则无脚印。",
+  footprint:
+    "脚印在落定控件之后、来源列表之前。不进多步骤。有帮助/没帮助/复制/重新生成/回放；有引用才出来源。点来源才展开列表。桌面默认淡，hover/focus 拉满。streaming 不出脚印。",
+  order: "用户泡 →（讲题：题面）→ 回合态 →（专家栈 | Approval）→ 正文 → 多步骤折叠 → 落定控件 → 脚印 →（点来源后的列表）",
 } as const;
+
+export const FOOTPRINT_ACTIONS: ReadonlyArray<{
+  id: string;
+  label: string;
+  when: string;
+}> = [
+  { id: "up", label: "有帮助", when: "settled | stop，有正文" },
+  { id: "down", label: "没帮助", when: "同上" },
+  { id: "copy", label: "复制", when: "同上" },
+  { id: "regen", label: "重新生成", when: "同上" },
+  { id: "replay", label: "回放", when: "有过程可回放时" },
+  { id: "sources", label: "来源 N", when: "本回合有引用；点开才在脚印下展开列表。inline [n] 仍是旁浮出" },
+];
 
 /** 回合渲染器词表。与产品 CONTEXT.md「AI and billing」同锁。Claude content block 对齐。 */
 export const RENDERER_TERMS: ReadonlyArray<{
@@ -339,6 +354,86 @@ export const LANDING_GAPS: ReadonlyArray<{
     need: "1067 契约改写专家栈/多步骤，废止「一出正文芯片消失」",
     why: "产品执行仍会按旧 1067 删芯片",
   },
+  {
+    id: "footprint",
+    need: "脚印：有帮助/没帮助/复制/重新生成/回放/来源；点来源才展开；不进多步骤；streaming 不出",
+    why: "产品脚印未锁在落定控件之后、来源列表之前",
+  },
+];
+
+/** 缺口对照：原型已锁什么 / 产品还缺什么。执行只抄「原型」列。 */
+export const GAP_CONTRAST: ReadonlyArray<{
+  id: string;
+  gap: string;
+  prototype: string;
+  product: string;
+}> = [
+  {
+    id: "turn-tree",
+    gap: "单一 Turn 树",
+    prototype: "DensityStream 已按 用户泡→回合态→专家栈|Approval→正文→多步骤→控件→脚印 排",
+    product: "InFlight / MessageList / StatusToolsRow 拼盘",
+  },
+  {
+    id: "event-map",
+    gap: "SSE → 内容块",
+    prototype: "总览 EVENT_TO_BLOCK 表",
+    product: "decodeConsultStreamItem 未投影到回合块",
+  },
+  {
+    id: "dots-px",
+    gap: "Dots 几何",
+    prototype: "4px / gap 2px / 槽 16×16 整数格",
+    product: "仍 1.5px / 15×15",
+  },
+  {
+    id: "rail-fold",
+    gap: "专家栈 / 多步骤时序",
+    prototype: "live 只 chips；streaming 收；settled 折叠 OpRow",
+    product: "芯片行常驻，无多步骤折叠",
+  },
+  {
+    id: "footprint",
+    gap: "脚印 footer",
+    prototype: "settled|stop 出脚印；来源点击展开；hover 淡入；不进多步骤",
+    product: "未按此序锁在控件之后",
+  },
+  {
+    id: "copy-1066",
+    gap: "文案",
+    prototype: "回合态/HITL 用中文锁定名",
+    product: "部分仍 StatusBadge / 英文风险",
+  },
+  {
+    id: "hosts",
+    gap: "宿主",
+    prototype: "四密标本共用 DensityStream",
+    product: "Teach/Essay/Tutor 只换了 Dots，过程条自绘",
+  },
+  {
+    id: "vc-sync",
+    gap: "1067 契约",
+    prototype: "与 AGENT_STREAM / 本表一致",
+    product: "1067.w0.5 已改文档；代码未跟",
+  },
+];
+
+/** consult SSE → 内容块。产品 `decodeConsultStreamItem` 必须按此投影，禁止另造机。 */
+export const EVENT_TO_BLOCK: ReadonlyArray<{
+  frame: string;
+  block: string;
+  chrome: string;
+}> = [
+  { frame: "phase thinking/gathering · 无 delta", block: "思考块", chrome: "回合态 wait；可有专家栈" },
+  { frame: "tool calling · 无正文", block: "工具调用", chrome: "回合态 tool + 专家栈" },
+  { frame: "delta / assistantText", block: "正文", chrome: "回合态 stream；专家栈收起" },
+  { frame: "cancelled", block: "—", chrome: "回合态 stop；正文保留；多步骤可折" },
+  { frame: "provider_unknown / failed", block: "—", chrome: "回合态 error + ErrorBand" },
+  { frame: "stop_pending", block: "—", chrome: "回合态 halt" },
+  { frame: "recovering / replay_gap", block: "—", chrome: "回合态 recover" },
+  { frame: "completed + 有过程", block: "工具结果", chrome: "回合态 done + 多步骤折叠" },
+  { frame: "completed 无过程", block: "正文", chrome: "回合态 done，零折叠" },
+  { frame: "completed | cancelled 且已有正文", block: "脚印", chrome: "Footprint；点来源展开列表；不进多步骤" },
 ];
 
 /**
