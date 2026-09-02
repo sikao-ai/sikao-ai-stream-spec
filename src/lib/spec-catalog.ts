@@ -176,8 +176,174 @@ export const RENDERER_TERMS: ReadonlyArray<{
 ];
 
 /**
+ * Beautiful UI → 司考回合渲染器。先偷几何/交互，再按四密场景裁。
+ * land: spec = 原型已标本；product = sikao 仓可落地程度。
+ */
+export const BUI_TO_SIKAO: ReadonlyArray<{
+  bui: string;
+  steal: string;
+  leave: string;
+  sikao: string;
+  role: string;
+  product: string;
+  land: "spec" | "partial" | "gap";
+}> = [
+  {
+    bui: "01 Loading State · Dots",
+    steal: "3×3 圆点、opacity 波、elapsed 在行右",
+    leave: "Drive / Orbit / Surfer 扫光",
+    sikao: "回合态 Dots",
+    role: "每回合常驻。8 态着色。几何 4px / gap 2px / 槽 16×16。",
+    product: "TurnStatus.tsx 仍 1.5px/15，行列不对称",
+    land: "partial",
+  },
+  {
+    bui: "02 Thinking · traces",
+    steal: "可折叠思考步骤、弱一档文案",
+    leave: "英文 Thought for Ns 当产品文案",
+    sikao: "思考块 → 活时进专家栈；正文后进多步骤",
+    role: "Claude thinking block。不对思考打绿勾。",
+    product: "LiveStepFeed 当芯片，无折叠步骤列",
+    land: "gap",
+  },
+  {
+    bui: "03 Streaming Text",
+    steal: "通栏无框、角标旁浮出引用、Follow-ups",
+    leave: "英文 follow-up pill",
+    sikao: "正文 StreamingProse + 引用 + 落定 PromptList",
+    role: "Claude text block。出字时专家栈已收。",
+    product: "StreamingProse 有；未接专家栈收起/多步骤展开",
+    land: "partial",
+  },
+  {
+    bui: "04 Approval Card",
+    steal: "一问、选项行、点选即提交、页脚点阵",
+    leave: "480ms picked 窗、铺满奶黄、普通按钮条",
+    sikao: "Approval · 活时门",
+    role: "未点选挡住正文。柔黄只给主钮。",
+    product: "HitlCards + GenericApprovalCard 适配器；invalid/reopen 无 DTO",
+    land: "partial",
+  },
+  {
+    bui: "05 Tool Chips",
+    steal: "lucide 小芯片、活时一行",
+    leave: "当整轮过程 UI；落定后仍挂一排头像",
+    sikao: "专家栈",
+    role: "仅 waiting/tool 活时。新图标从右顶走。gate 活时用 Approval 不用芯片。",
+    product: "StatusToolsRow 芯片行常驻，未按出字收起",
+    land: "partial",
+  },
+  {
+    bui: "06 Task Rows",
+    steal: "running / failed / completed 行、耗时",
+    leave: "逐步绿勾、任务管理器皮肤",
+    sikao: "多步骤 · 工具调用行 OpRow",
+    role: "正文后折叠展开。工具结果退成 meta lucide。",
+    product: "无 Turn 级折叠；ProcessStepRow 仍是旧过程条",
+    land: "gap",
+  },
+  {
+    bui: "07 Chat",
+    steal: "用户浅泡、助手非泡、composer",
+    leave: "桌面三栏当默认、人设侧栏",
+    sikao: "回合渲染器",
+    role: "MessageList 只排 回合。四密加减块不换皮。",
+    product: "InFlight + MessageList 拼盘，不是单一 Turn 骨架",
+    land: "gap",
+  },
+  {
+    bui: "08 Prompt Bar",
+    steal: "@来源 / 命令 / 模型条的壳位",
+    leave: "把 PromptList 做成 composer",
+    sikao: "输入条 + 壳",
+    role: "Composer 在回合底。Dock/⌘J 归 SIK-1072。",
+    product: "AiPanel composer 在；Prompt Bar 形态未按 1072 契约",
+    land: "partial",
+  },
+  {
+    bui: "09 Recommendation Card",
+    steal: "主建议 + 推荐度 + 其他方案格子",
+    leave: "柔黄主钮、挡住下一问",
+    sikao: "Recommendation · 落定提案",
+    role: "不挡正文。查看笔记炭黑。",
+    product: "HitlCards Recommendation；计划卡仍走 ProposalCard 适配",
+    land: "partial",
+  },
+  {
+    bui: "10 Context Cards",
+    steal: "检索块 + 来源脚",
+    leave: "网页 favicon 引用条塞进气泡",
+    sikao: "引用 + 你记过 Context Card + 结果页扫卡",
+    role: "对话里 [n] 旁浮出；脚印才展开列表。结果页不进回合。",
+    product: "来源归 SIK-1070，回合内未按契约",
+    land: "gap",
+  },
+  {
+    bui: "11 Diff Table",
+    steal: "无。不进回合。",
+    leave: "整张 diff 当对话皮肤",
+    sikao: "Filter Table 仅工具流落定对照",
+    role: "落定控件，不是内容块。",
+    product: "无 Filter Table 产品面",
+    land: "gap",
+  },
+  {
+    bui: "12 Records Table",
+    steal: "无。CRM 表不进流。",
+    leave: "记录网格当 AI 列",
+    sikao: "—",
+    role: "不实现。",
+    product: "n/a",
+    land: "spec",
+  },
+];
+
+/** 回合渲染器要能开执行，还必须补的契约。缺任一项产品不得当 1068 Done。 */
+export const LANDING_GAPS: ReadonlyArray<{
+  id: string;
+  need: string;
+  why: string;
+}> = [
+  {
+    id: "turn-tree",
+    need: "单一 Turn 树：用户泡 → 回合态 → 专家栈|Approval → 正文 → 多步骤 → 控件 → 脚印",
+    why: "现网 InFlight/MessageList/StatusToolsRow 拼盘，执行者无法对照 DensityStream 抄",
+  },
+  {
+    id: "event-map",
+    need: "SSE/内容块对照表：phase/delta/tool/cancelled → 思考块/工具调用/正文/回合态",
+    why: "没有事件映射，视觉标本不能接 AgentRuntime",
+  },
+  {
+    id: "dots-px",
+    need: "产品 Dots 与原型同几何：4px / gap 2px / 16×16",
+    why: "产品仍 1.5px/15，落地即歪",
+  },
+  {
+    id: "rail-fold",
+    need: "活时专家栈、出字收起、正文后同一行折叠出多步骤",
+    why: "产品芯片行常驻；无 OpRow 折叠",
+  },
+  {
+    id: "copy-1066",
+    need: "1066.v4 文案锁进回合态/HITL，不用 BUI 英文",
+    why: "落地会混 Churning / Worked for",
+  },
+  {
+    id: "hosts",
+    need: "Home dock / Teach / Essay / Guided / Tutor / Review 共用同一 Turn renderer",
+    why: "只换 StatusBadge 不够，各宿主仍自绘过程条",
+  },
+  {
+    id: "vc-sync",
+    need: "1067 契约改写专家栈/多步骤，废止「一出正文芯片消失」",
+    why: "产品执行仍会按旧 1067 删芯片",
+  },
+];
+
+/**
  * Dots 投影 1040 DurableAttachmentState + ExecutionTerminal。
- * 几何仍是 SIK-1045 3×3；色相按终态/中断/失败分。
+ * 几何：4px 点、gap 2px、槽 16×16 整数格；色相按终态/中断/失败分。
  * 不新造 run 机，不把点阵画上 DurableRunStatusBar。
  */
 export const DOT_STATES = [
