@@ -17,6 +17,7 @@ import { hydrateTheme, useAppStore, type DensityId, type SectionId } from "@/lib
 import {
   AGENT_STREAM,
   BANNED,
+  BUI_TO_SIKAO,
   BUI_WIDGETS,
   DENSITIES,
   DENSITY_CHROME,
@@ -25,6 +26,7 @@ import {
   ENTRIES,
   FAMILIES,
   HITL,
+  LANDING_GAPS,
   LOOKBACK_SOURCE,
   NAV_GROUPS,
   RENDERER_TERMS,
@@ -227,6 +229,71 @@ function Overview() {
                   </td>
                   <td>{row.maps}</td>
                   <td>{row.not}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2 className="spec-h2">Beautiful UI → 司考组件</h2>
+        <p className="spec-meta">
+          先从 beautifului.dev 偷几何和交互，再按四密裁。land=spec 只在原型；partial 产品有半套；gap
+          产品还不能抄。
+        </p>
+        <div className="spec-table-wrap">
+          <table className="spec-table">
+            <thead>
+              <tr>
+                <th>Beautiful UI</th>
+                <th>偷</th>
+                <th>不偷</th>
+                <th>司考名</th>
+                <th>在回合里干什么</th>
+                <th>产品仓</th>
+                <th>落地</th>
+              </tr>
+            </thead>
+            <tbody>
+              {BUI_TO_SIKAO.map((row) => (
+                <tr key={row.bui}>
+                  <td>{row.bui}</td>
+                  <td>{row.steal}</td>
+                  <td>{row.leave}</td>
+                  <td>
+                    <strong>{row.sikao}</strong>
+                  </td>
+                  <td>{row.role}</td>
+                  <td>{row.product}</td>
+                  <td>{row.land}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2 className="spec-h2">离落地还差什么</h2>
+        <p className="spec-meta">缺任一项，sikao 执行不得把 1068 当完整回合渲染器 Done。</p>
+        <div className="spec-table-wrap">
+          <table className="spec-table">
+            <thead>
+              <tr>
+                <th>缺口</th>
+                <th>必须有</th>
+                <th>为什么现在抄不了</th>
+              </tr>
+            </thead>
+            <tbody>
+              {LANDING_GAPS.map((row) => (
+                <tr key={row.id}>
+                  <td>
+                    <code>{row.id}</code>
+                  </td>
+                  <td>{row.need}</td>
+                  <td>{row.why}</td>
                 </tr>
               ))}
             </tbody>
