@@ -190,7 +190,7 @@ function StealSpecimen({ id }: { readonly id: (typeof STEALS)[number]["id"] }) {
     case "hitl":
       return (
         <div className="sk-stack-gap">
-          <TurnStatusLine state="wait" copy="等待确认" time="4s" />
+          <TurnStatusLine state="wait" copy="等你选" time="4s" />
           <ProposalCard
             blocking
             title="写入笔记前先确认"
@@ -564,7 +564,7 @@ function DensityPage() {
       <div className="spec-card">
         <h3 className="spec-h3">Widget 帧 · 不互相替换</h3>
         <p className="spec-meta">
-          审批卡是实时门：Agent 还没写完，必须先问。会话结束后的「要不要写入」用推荐卡。发现卡讲量化错因，筛选表对照错题。方法卡 /
+          确认卡是活时门：先问你，选完才往下写。写完之后「要不要记进计划」用推荐卡。发现卡讲你错在哪，可用条形、进度、曲线。筛选表对照错题。方法卡 /
           你来仍是讲题自己的帧——三张 Beautiful UI 卡不能替换它们。
         </p>
         <div className="spec-split spec-h3-gap">
@@ -580,7 +580,7 @@ function DensityPage() {
           </Frame>
         </div>
         <div className="spec-split spec-h3-gap">
-          <Frame title="Insight · 量化发现" kicker="你错在哪">
+          <Frame title="发现卡 · 条形 / 进度 / 曲线 / 对照" kicker="你错在哪">
             <InsightCards />
           </Frame>
           <Frame title="Filter Table · 对照" kicker="芯片重排行">
@@ -1371,7 +1371,7 @@ function Playground() {
           <TurnStatusLine state="recover" copy="" status="recover" />
         </Frame>
         <Frame title="活时门" kicker="gate">
-          <TurnStatusLine state="wait" copy="等待确认" time="4s" />
+          <TurnStatusLine state="wait" copy="等你选" time="4s" />
           <ProposalCard
             blocking
             title="写入笔记前先确认"
