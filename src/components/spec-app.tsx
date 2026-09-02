@@ -26,6 +26,9 @@ import {
   ENTRIES,
   EVENT_TO_BLOCK,
   FAMILIES,
+  HOST_MOUNT,
+  TIMING_MATRIX,
+  TURN_SLOTS,
   FOOTPRINT_ACTIONS,
   GAP_CONTRAST,
   HITL,
@@ -1168,6 +1171,87 @@ function Playground() {
         <DensityPicker value={density} onChange={setDensity} />
       </header>
 
+      <section>
+        <h2 className="spec-h2">抄这一棵（data-turn-slot）</h2>
+        <p className="spec-meta">
+          产品一行换一行。ticket=SIK-1070/1072 的槽只留位，1068 不画皮。下方 DensityStream 已打这些 slot。
+        </p>
+        <div className="spec-table-wrap">
+          <table className="spec-table">
+            <thead>
+              <tr>
+                <th>slot</th>
+                <th>名称</th>
+                <th>票</th>
+                <th>何时</th>
+              </tr>
+            </thead>
+            <tbody>
+              {TURN_SLOTS.map((row) => (
+                <tr key={row.id}>
+                  <td>
+                    <code>{row.id}</code>
+                  </td>
+                  <td>{row.name}</td>
+                  <td>{row.ticket}</td>
+                  <td>{row.when}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <h3 className="spec-h3 spec-h3-gap">时序对照</h3>
+        <div className="spec-table-wrap">
+          <table className="spec-table">
+            <thead>
+              <tr>
+                <th>槽</th>
+                <th>waiting</th>
+                <th>live</th>
+                <th>streaming</th>
+                <th>settled</th>
+                <th>stop</th>
+              </tr>
+            </thead>
+            <tbody>
+              {TIMING_MATRIX.map((row) => (
+                <tr key={row.slot}>
+                  <td>
+                    <code>{row.slot}</code>
+                  </td>
+                  <td>{row.waiting}</td>
+                  <td>{row.live}</td>
+                  <td>{row.streaming}</td>
+                  <td>{row.settled}</td>
+                  <td>{row.stop}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <h3 className="spec-h3 spec-h3-gap">宿主只挂这一棵</h3>
+        <div className="spec-table-wrap">
+          <table className="spec-table">
+            <thead>
+              <tr>
+                <th>宿主</th>
+                <th>密度</th>
+                <th>额外</th>
+              </tr>
+            </thead>
+            <tbody>
+              {HOST_MOUNT.map((row) => (
+                <tr key={row.host}>
+                  <td>{row.host}</td>
+                  <td>{row.density}</td>
+                  <td>{row.extra}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <div className="spec-gallery">
         <Frame title="等待" kicker="waiting">
           <TurnStatusLine state="wait" copy="正在想" />
@@ -1241,13 +1325,15 @@ function Playground() {
             />
           )}
         </div>
-        <ComposerBar
-          value={input}
-          onChange={setInput}
-          onSend={() => send(input)}
-          onStop={stopTurn}
-          busy={busy}
-        />
+        <div data-turn-slot="composer" data-ticket="SIK-1072">
+          <ComposerBar
+            value={input}
+            onChange={setInput}
+            onSend={() => send(input)}
+            onStop={stopTurn}
+            busy={busy}
+          />
+        </div>
       </div>
       <div className="spec-note">
         <p>{AGENT_STREAM.live}</p>
