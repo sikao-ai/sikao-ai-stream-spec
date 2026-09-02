@@ -31,6 +31,9 @@ import {
   TURN_SLOTS,
   TYPE_SCALE,
   TYPE_STACK,
+  TYPE_SURFACES,
+  LAYOUT_SCALE,
+  COPY_LOCK,
   FOOTPRINT_ACTIONS,
   GAP_CONTRAST,
   HITL,
@@ -950,30 +953,19 @@ function TokensPage() {
         <span className="spec-kicker">1040 状态机 · 点阵着色</span>
         <h1 className="spec-h1">暗色只开 token，统一无描边</h1>
         <p className="spec-lede">
-          近黑平面、单一 AI 蓝。点阵按 1040 终态上色。产品黄不进流。确认门深色用 warn-mid 混面。排印与产品 tokens 同栈。
+          近黑平面、单一 AI 蓝。点阵按 1040 终态上色。产品黄不进流。排印分 Web 桌面 / Web 移动 / iOS Phone 三壳。
         </p>
       </header>
       <section>
-        <h2 className="spec-h2">字体</h2>
-        <p className="spec-meta">
-          UI：{TYPE_STACK.ui}。等宽：{TYPE_STACK.mono}。{TYPE_STACK.rules}
-        </p>
-        <div className="spec-type-ladder spec-h3-gap">
-          {TYPE_SCALE.map((row) => (
-            <div key={row.slot} className="spec-type-row">
-              <span className="spec-meta">{row.slot}</span>
-              <p
-                className="spec-type-sample"
-                data-family={row.family}
-                style={{
-                  fontSize: row.size,
-                  lineHeight: row.lh,
-                  fontWeight: row.weight,
-                  fontFamily: row.family === "mono" ? "var(--font-family-mono)" : "var(--font-family-ui)",
-                }}
-              >
-                遏制势头 · {row.size}/{row.lh}
-              </p>
+        <h2 className="spec-h2">三壳字体</h2>
+        <p className="spec-meta">{TYPE_STACK.rules} iOS 功能跟 Web 移动（H17），字栈用 SF/PingFang。</p>
+        <div className="spec-split spec-h3-gap">
+          {TYPE_SURFACES.map((s) => (
+            <div key={s.id} className="spec-card">
+              <h3 className="spec-h3">{s.label}</h3>
+              <p className="spec-meta">{s.note}</p>
+              <p className="spec-meta spec-h3-gap">UI：{s.stack}</p>
+              <p className="spec-meta">等宽：{s.mono}</p>
             </div>
           ))}
         </div>
@@ -982,24 +974,62 @@ function TokensPage() {
             <thead>
               <tr>
                 <th>槽</th>
-                <th>token</th>
-                <th>字号</th>
-                <th>行高</th>
-                <th>字重</th>
-                <th>栈</th>
+                <th>Web 桌面</th>
+                <th>Web 移动</th>
+                <th>iOS Phone</th>
               </tr>
             </thead>
             <tbody>
               {TYPE_SCALE.map((row) => (
-                <tr key={row.token}>
+                <tr key={row.slot}>
                   <td>{row.slot}</td>
-                  <td>
-                    <code>{row.token}</code>
-                  </td>
-                  <td>{row.size}</td>
-                  <td>{row.lh}</td>
-                  <td>{row.weight}</td>
-                  <td>{row.family}</td>
+                  <td>{row.desktop}</td>
+                  <td>{row.mobile}</td>
+                  <td>{row.ios}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <h3 className="spec-h3 spec-h3-gap">三壳布局</h3>
+        <div className="spec-table-wrap">
+          <table className="spec-table">
+            <thead>
+              <tr>
+                <th>槽</th>
+                <th>Web 桌面</th>
+                <th>Web 移动</th>
+                <th>iOS Phone</th>
+              </tr>
+            </thead>
+            <tbody>
+              {LAYOUT_SCALE.map((row) => (
+                <tr key={row.slot}>
+                  <td>{row.slot}</td>
+                  <td>{row.desktop}</td>
+                  <td>{row.mobile}</td>
+                  <td>{row.ios}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <h3 className="spec-h3 spec-h3-gap">回合文案锁（1066.v4）</h3>
+        <div className="spec-table-wrap">
+          <table className="spec-table">
+            <thead>
+              <tr>
+                <th>槽</th>
+                <th>用这句</th>
+                <th>不要</th>
+              </tr>
+            </thead>
+            <tbody>
+              {COPY_LOCK.map((row) => (
+                <tr key={row.slot}>
+                  <td>{row.slot}</td>
+                  <td>{row.copy}</td>
+                  <td>{row.avoid}</td>
                 </tr>
               ))}
             </tbody>
