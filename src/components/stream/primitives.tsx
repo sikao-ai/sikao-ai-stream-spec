@@ -1699,35 +1699,43 @@ function AnswerBody({
   return (
     <TurnBlock kind="answer">
       <div className="sk-answer-shell sk-answer-stack">
-        <AssistantProse streaming={phase === "streaming"}>
-          {showCited ? (
-            <p>
-              「遏制」的对象通常是已经起来的势头，语气偏硬
-              <Cite n={1} active={citeFocus === 1} onOpen={openCite} />。空里要的是还没成形的苗头，用「抑制」更贴搭配
-              <Cite n={2} active={citeFocus === 2} onOpen={openCite} />。
-            </p>
-          ) : (
-            <p>{text}</p>
-          )}
-        </AssistantProse>
+        <div data-turn-slot="prose">
+          <AssistantProse streaming={phase === "streaming"}>
+            {showCited ? (
+              <p>
+                「遏制」的对象通常是已经起来的势头，语气偏硬
+                <Cite n={1} active={citeFocus === 1} onOpen={openCite} />。空里要的是还没成形的苗头，用「抑制」更贴搭配
+                <Cite n={2} active={citeFocus === 2} onOpen={openCite} />。
+              </p>
+            ) : (
+              <p>{text}</p>
+            )}
+          </AssistantProse>
+        </div>
         {phase === "settled" && extra}
-        {phase === "settled" && widgets ? <div className="sk-turn-widgets">{widgets}</div> : null}
+        {phase === "settled" && widgets ? (
+          <div className="sk-turn-widgets" data-turn-slot="widgets">
+            {widgets}
+          </div>
+        ) : null}
         {phase === "settled" || phase === "stop" ? (
-          <AnswerFootprint
-            sourceCount={sources.length}
-            sourcesOn={listOpen}
-            onSources={
-              sources.length > 0
-                ? () => {
-                    closeFloat();
-                    setListOpen((v) => !v);
-                  }
-                : undefined
-            }
-          />
+          <div data-turn-slot="footprint">
+            <AnswerFootprint
+              sourceCount={sources.length}
+              sourcesOn={listOpen}
+              onSources={
+                sources.length > 0
+                  ? () => {
+                      closeFloat();
+                      setListOpen((v) => !v);
+                    }
+                  : undefined
+              }
+            />
+          </div>
         ) : null}
         {listOpen && phase === "settled" && sources.length > 0 ? (
-          <div className="sk-src-after">
+          <div className="sk-src-after" data-turn-slot="source-list" data-ticket="SIK-1070">
             <span className="sk-stem-kicker">来源</span>
             <PplxSources items={sources} />
           </div>
@@ -1847,35 +1855,53 @@ export function DensityStream({
   return (
     <TurnStream>
       <TurnBlock kind="user">
-        <UserBubble content={question} />
+        <div data-turn-slot="user">
+          <UserBubble content={question} />
+        </div>
       </TurnBlock>
 
       {density === "teach" ? (
         <TurnBlock kind="process">
-          <StemMark text="对新生事物，应______其萌芽，而不是等它坐大再去堵。" />
+          <div data-turn-slot="stem">
+            <StemMark text="对新生事物，应______其萌芽，而不是等它坐大再去堵。" />
+          </div>
         </TurnBlock>
       ) : null}
 
       <TurnBlock kind="process">
-        <TurnStatusLine
-          key={phase}
-          state={dotsFor(density, phase)}
-          copy={copyFor(density, phase)}
-          status={roundFor(phase)}
-          time={timeFor(density, phase)}
-          foldable={showStepFold}
-          defaultOpen={false}
-          rail={showChips ? <LiveExpertPlayback /> : undefined}
-        >
-          {showStepFold ? <ProcessSteps phase={phase} /> : null}
-        </TurnStatusLine>
+        <div data-turn-slot="status">
+          <TurnStatusLine
+            key={phase}
+            state={dotsFor(density, phase)}
+            copy={copyFor(density, phase)}
+            status={roundFor(phase)}
+            time={timeFor(density, phase)}
+            foldable={showStepFold}
+            defaultOpen={false}
+            rail={
+              showChips ? (
+                <div data-turn-slot="expert-rail">
+                  <LiveExpertPlayback />
+                </div>
+              ) : undefined
+            }
+          >
+            {showStepFold ? (
+              <div data-turn-slot="step-log">
+                <ProcessSteps phase={phase} />
+              </div>
+            ) : null}
+          </TurnStatusLine>
+        </div>
         {density === "gate" && phase === "live" ? (
-          <ProposalCard
-            blocking
-            title="写入笔记前先确认"
-            reason="接下来会把「遏制势头 / 抑制萌芽」记进今日计划，并对照本周 3 道错题。"
-            onResolved={onGateResolved}
-          />
+          <div data-turn-slot="approval">
+            <ProposalCard
+              blocking
+              title="写入笔记前先确认"
+              reason="接下来会把「遏制势头 / 抑制萌芽」记进今日计划，并对照本周 3 道错题。"
+              onResolved={onGateResolved}
+            />
+          </div>
         ) : null}
       </TurnBlock>
 
@@ -1888,11 +1914,13 @@ export function DensityStream({
         extra={
           density === "short" || phase !== "settled" ? null : (
             <>
-              <div className="sk-lookback">
-                <span className="sk-lookback-kicker">{LOOKBACK_KICKER}</span>
+              <div className="sk-lookback" data-turn-slot="lookback" data-ticket="SIK-1070">
+                <span className="sk-stem-kicker">{LOOKBACK_KICKER}</span>
                 <ContextCard item={LOOKBACK_SOURCE} numbered={false} />
               </div>
-              <PromptList items={["为什么不能选遏制", "对比近义", "做成今日计划"]} />
+              <div data-turn-slot="widgets">
+                <PromptList items={["为什么不能选遏制", "对比近义", "做成今日计划"]} />
+              </div>
             </>
           )
         }

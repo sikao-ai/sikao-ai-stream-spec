@@ -371,13 +371,13 @@ export const GAP_CONTRAST: ReadonlyArray<{
   {
     id: "turn-tree",
     gap: "单一 Turn 树",
-    prototype: "DensityStream 已按 用户泡→回合态→专家栈|Approval→正文→多步骤→控件→脚印 排",
+    prototype: "回合页 TURN_SLOTS + DensityStream data-turn-slot 一行换一行",
     product: "InFlight / MessageList / StatusToolsRow 拼盘",
   },
   {
     id: "event-map",
     gap: "SSE → 内容块",
-    prototype: "总览 EVENT_TO_BLOCK 表",
+    prototype: "总览 EVENT_TO_BLOCK；回合页时序表 TIMING_MATRIX",
     product: "decodeConsultStreamItem 未投影到回合块",
   },
   {
@@ -389,7 +389,7 @@ export const GAP_CONTRAST: ReadonlyArray<{
   {
     id: "rail-fold",
     gap: "专家栈 / 多步骤时序",
-    prototype: "live 只 chips；streaming 收；settled 折叠 OpRow",
+    prototype: "TIMING_MATRIX：live ● expert-rail；streaming —；settled fold step-log",
     product: "芯片行常驻，无多步骤折叠",
   },
   {
@@ -407,7 +407,7 @@ export const GAP_CONTRAST: ReadonlyArray<{
   {
     id: "hosts",
     gap: "宿主",
-    prototype: "四密标本共用 DensityStream",
+    prototype: "HOST_MOUNT：各宿主只换密度/题面，过程条禁止自绘",
     product: "Teach/Essay/Tutor 只换了 Dots，过程条自绘",
   },
   {
@@ -434,6 +434,62 @@ export const EVENT_TO_BLOCK: ReadonlyArray<{
   { frame: "completed + 有过程", block: "工具结果", chrome: "回合态 done + 多步骤折叠" },
   { frame: "completed 无过程", block: "正文", chrome: "回合态 done，零折叠" },
   { frame: "completed | cancelled 且已有正文", block: "脚印", chrome: "Footprint；点来源展开列表；不进多步骤" },
+];
+
+/**
+ * 可抄 Turn 树。产品必须用同一顺序挂节点；data-turn-slot 与此 id 一致。
+ * ticket: 1068 画皮；1070/1072 只留插槽。
+ */
+export const TURN_SLOTS: ReadonlyArray<{
+  id: string;
+  name: string;
+  ticket: string;
+  when: string;
+}> = [
+  { id: "user", name: "用户泡", ticket: "SIK-1068", when: "每回合" },
+  { id: "stem", name: "题面 mark", ticket: "SIK-1068", when: "仅 teach" },
+  { id: "status", name: "回合态 Dots", ticket: "SIK-1068", when: "每回合" },
+  { id: "expert-rail", name: "专家栈", ticket: "SIK-1068", when: "live 且非 short/gate" },
+  { id: "approval", name: "Approval 活时门", ticket: "SIK-1068", when: "gate + live" },
+  { id: "prose", name: "正文", ticket: "SIK-1068", when: "streaming | settled | stop" },
+  { id: "step-log", name: "多步骤折叠", ticket: "SIK-1068", when: "settled | stop，且有过程" },
+  { id: "lookback", name: "你记过", ticket: "SIK-1070", when: "settled 有笔记；1068 只留槽" },
+  { id: "widgets", name: "落定控件", ticket: "SIK-1068", when: "settled：方法卡/发现卡/推荐卡/PromptList" },
+  { id: "footprint", name: "脚印", ticket: "SIK-1068", when: "settled | stop，有正文" },
+  { id: "source-list", name: "来源列表", ticket: "SIK-1070", when: "点脚印来源后；1068 只留槽" },
+  { id: "composer", name: "输入条 / 壳", ticket: "SIK-1072", when: "Turn 外；1068 不画 Dock/Prompt Bar" },
+];
+
+/** 相位 × 槽。● 画出；— 不画；fold 默认收起可点开。 */
+export const TIMING_MATRIX: ReadonlyArray<{
+  slot: string;
+  waiting: string;
+  live: string;
+  streaming: string;
+  settled: string;
+  stop: string;
+}> = [
+  { slot: "status", waiting: "● wait", live: "● tool/wait", streaming: "● stream", settled: "● done", stop: "● stop" },
+  { slot: "expert-rail", waiting: "—", live: "● 非 gate", streaming: "—", settled: "—", stop: "—" },
+  { slot: "approval", waiting: "—", live: "● 仅 gate", streaming: "—", settled: "—", stop: "—" },
+  { slot: "prose", waiting: "—", live: "—", streaming: "●", settled: "●", stop: "● 已写部分" },
+  { slot: "step-log", waiting: "—", live: "—", streaming: "—", settled: "fold", stop: "fold" },
+  { slot: "widgets", waiting: "—", live: "—", streaming: "—", settled: "●", stop: "—" },
+  { slot: "footprint", waiting: "—", live: "—", streaming: "—", settled: "●", stop: "●" },
+  { slot: "source-list", waiting: "—", live: "—", streaming: "—", settled: "点开", stop: "—" },
+];
+
+/** 宿主只换密度/题面/控件，不另起过程条。 */
+export const HOST_MOUNT: ReadonlyArray<{
+  host: string;
+  density: string;
+  extra: string;
+}> = [
+  { host: "Home dock", density: "short | tool | gate", extra: "默认挂 DensityStream；壳归 1072" },
+  { host: "Teach / Guided", density: "teach", extra: "加 stem；方法卡/你来走 widgets" },
+  { host: "Essay", density: "tool | teach", extra: "同一 Turn，禁止自绘 StatusBadge/过程条" },
+  { host: "Tutor", density: "teach", extra: "同上" },
+  { host: "Review", density: "teach | gate", extra: "只保留 Modal/dock 拓扑；流内皮同一 Turn" },
 ];
 
 /**
