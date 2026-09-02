@@ -585,7 +585,7 @@ function FamiliesPage() {
             <OpRow op="write" text="写入对照笔记" elapsed="0.6s" />
           </TurnStatusLine>
         </div>
-        <p className="spec-meta spec-h3-gap">点阵贴着「已完成」。思考时间在行右。多步骤 lucide 与点阵同槽 15px。</p>
+        <p className="spec-meta spec-h3-gap">点阵贴着「已完成」。思考时间在行右。点阵槽 16×16 整数格；多步骤 lucide 15px 槽。</p>
         <div className="spec-h3-gap">
           <OpRow op="thought" text="先看搭配对象是「势头」，不是「情绪」。" />
           <OpRow op="search" text="检索近义干扰 · 遏制 / 遏止 / 抑制" elapsed="1.2s" />
@@ -870,7 +870,7 @@ function TokensPage() {
               <td>
                 <code>3 × 3</code>
               </td>
-              <td>4px 圆点 · gap 1.5px · 槽 15×15</td>
+              <td>4px 圆点 · gap 2px · 槽 16×16 整数格</td>
             </tr>
             <tr>
               <td>

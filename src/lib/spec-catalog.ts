@@ -335,7 +335,7 @@ export const RULES: ReadonlyArray<{ kind: "do" | "dont"; title: string; body: st
   {
     kind: "dont",
     title: "不要第 11 号字",
-    body: "tiny = 11px 最小合法。CJK 禁止斜体。点阵 4px，gap 1.5px。",
+    body: "tiny = 11px 最小合法。CJK 禁止斜体。点阵 4px，gap 2px，槽 16×16（4×3+2×2 整数像素，行列对称）。",
   },
 ];
 
