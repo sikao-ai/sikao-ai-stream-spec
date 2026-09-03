@@ -1,6 +1,6 @@
 import { useEffect, type ReactNode } from "react";
 import { Columns2, PictureInPicture2, X } from "lucide-react";
-import { SHELL_PLACES, type DockPlace } from "@/contract/shell";
+import type { DockPlace } from "@/contract/shell";
 import { AiMark } from "@/components/stream/primitives";
 
 export function DockShell({
@@ -20,7 +20,6 @@ export function DockShell({
   readonly children: ReactNode;
   readonly composer?: ReactNode;
 }) {
-  const meta = SHELL_PLACES.find((p) => p.id === place) ?? SHELL_PLACES[0];
   useEffect(() => {
     document.documentElement.dataset.dockPlace = open ? place : "";
     return () => {
@@ -56,7 +55,6 @@ export function DockShell({
         </header>
         <div className="sk-dock-thread">{children}</div>
         {composer ? <div className="sk-dock-composer">{composer}</div> : null}
-        <p className="spec-meta sk-dock-note">{meta.note}</p>
       </section>
       {open && place === "ios" ? (
         <button type="button" className="sk-dock-scrim" aria-label="关闭" onClick={onClose} />

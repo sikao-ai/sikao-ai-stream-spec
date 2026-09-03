@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 const turn = readFileSync(new URL("../src/contract/turn.ts", import.meta.url), "utf8");
+const widgets = readFileSync(new URL("../src/contract/widgets.ts", import.meta.url), "utf8");
 const shell = readFileSync(new URL("../src/contract/shell.ts", import.meta.url), "utf8");
 const scenes = readFileSync(new URL("../src/contract/scenes.ts", import.meta.url), "utf8");
 const manifest = readFileSync(new URL("../src/contract/manifest.ts", import.meta.url), "utf8");
@@ -57,6 +58,37 @@ test("turn contract exports the copyable tree", () => {
   assert.match(turn, /export const BELOW_ANSWER/);
   assert.match(turn, /脚印下方只允许来源列表/);
   assert.match(turn, /default-collapsed/);
+  assert.match(turn, /export const RENDERER_PACK/);
+  assert.match(turn, /确认门/);
+  assert.match(turn, /发现卡/);
+  assert.match(turn, /Context Card/);
+  assert.match(turn, /export const ENTER_MOTION/);
+  assert.match(turn, /scale \.98/);
+  assert.match(turn, /480ms/);
+});
+
+test("product widget frames and misalign playbook", () => {
+  for (const id of [
+    "cause_distribution",
+    "trend_compare",
+    "weakness_action",
+    "confidence_calibration",
+    "wrong_book_snapshot",
+    "plan_week_strip",
+    "module_score_bars",
+    "predicted_score_gauge",
+    "exam_countdown_card",
+    "cause_remedy_checklist",
+    "session_result_summary",
+    "compare_two_windows",
+    "note_outline_card",
+  ]) {
+    assert.match(widgets, new RegExp(`id: "${id}"`));
+  }
+  assert.match(widgets, /fail-soft/);
+  assert.match(widgets, /先修 X，再修 Y/);
+  assert.match(widgets, /vp1440/);
+  assert.match(widgets, /vp390/);
 });
 
 test("shell contract locks Prompt Bar and float/rail/sheet", () => {
@@ -65,6 +97,14 @@ test("shell contract locks Prompt Bar and float/rail/sheet", () => {
   assert.match(shell, /id: "rail"/);
   assert.match(shell, /id: "ios"/);
   assert.match(shell, /不是 ACL 接通/);
+  assert.match(shell, /export const MOBILE_CHROME/);
+  assert.match(shell, /iconVisual: 32/);
+  assert.match(shell, /hit: 44/);
+  assert.match(shell, /禁止 44×44 方块按钮/);
+  assert.match(shell, /export const MOBILE_TYPE/);
+  assert.match(shell, /composerWeb: "14 \/ 18 \/ 400"/);
+  assert.match(shell, /chromeMeta: "13 \/ 18 \/ 400"/);
+  assert.match(shell, /禁止把占位撑到 16/);
 });
 
 test("scene fixtures name hosts and exception states", () => {

@@ -50,7 +50,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   dockHost: "overview",
   dockOpen: false,
   dockPlace: "float",
-  setSection: (section) => set({ section, dockOpen: section === "dock" ? true : get().dockOpen }),
+  setSection: (section) => set({ section }),
   setTheme: (theme) => {
     if (typeof window !== "undefined") {
       window.localStorage.setItem(THEME_KEY, theme);

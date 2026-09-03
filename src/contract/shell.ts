@@ -30,7 +30,7 @@ export const TYPE_SURFACES: ReadonlyArray<{
     label: "Web 移动壳",
     stack: "DM Sans → Inter → Noto Sans SC → PingFang SC → YaHei",
     mono: "JetBrains Mono",
-    note: "≤768 compact。正文不跟 tokens 把流内正文降到 13。输入条 16px 防 Safari 缩放。",
+    note: "≤768 compact。正文不跟 tokens 把流内正文降到 13。输入视觉 14，text-size-adjust 100%，禁止占位 16。",
   },
   {
     id: "ios-phone",
@@ -72,9 +72,62 @@ export const SHELL_PLACES: ReadonlyArray<{
     id: "ios",
     label: "Web 移动 sheet",
     when: "≤720 或显式 iOS 标本。H17：功能 = Web 移动。",
-    geometry: "底 sheet + handle。输入条 44，键盘避让。",
+    geometry: "底 sheet + handle。输入行 44，栏内圆钮视觉 32、命中 44。键盘避让。",
     note: "iPad 未拍板，禁止外推。",
   },
+];
+
+/**
+ * 390 / iOS 壳单独的尺寸。44 是触控地板，不是把图标画成 44 方块。
+ * 视觉胶囊小于命中区（Grok iOS：圆钮约 32，行高 44）。
+ */
+export const MOBILE_CHROME = {
+  hit: 44,
+  barRow: 44,
+  barType: 14,
+  iconVisual: 32,
+  sendVisual: 32,
+  footVisual: 28,
+  radiusBar: 20,
+  radiusIcon: 999,
+  note: "44 只做命中。+ / 听写 / 发送画 32 圆钮；脚印 lucide 仍 28。禁止 44×44 方块按钮。",
+} as const;
+
+export const MOBILE_CHROME_ROWS: ReadonlyArray<{
+  slot: string;
+  visual: string;
+  hit: string;
+}> = [
+  { slot: "输入行", visual: "44 · 字 14", hit: "行 44" },
+  { slot: "栏内圆钮", visual: "32 圆", hit: "格子 44" },
+  { slot: "确认主钮", visual: "32 圆", hit: "行 44" },
+  { slot: "脚印", visual: "lucide 28", hit: "44 常显" },
+];
+
+/**
+ * 390 / iOS 壳单独的字号。跟 MOBILE_CHROME 配套，不跟桌面 14/12 混用。
+ * 输入 ≥16 只为防 Safari 缩放，不是把壳上所有字都拉到 16。
+ */
+export const MOBILE_TYPE = {
+  composerWeb: "14 / 18 / 400",
+  composerIos: "17 / 22 / 400",
+  chromeMeta: "13 / 18 / 400",
+  numeral: "11 / 14 / 400",
+  bodyWeb: "14 / 1.75 / 400",
+  bodyIos: "16 / 1.75 / 400",
+  min: 11,
+  note: "Web 390 输入视觉 14，与桌面同号，text-size-adjust: 100%。壳辅文 13。数字 11。正文仍 14。禁止把占位撑到 16。iOS 原生输入才 17。CJK 禁止斜体。",
+} as const;
+
+export const MOBILE_TYPE_ROWS: ReadonlyArray<{
+  slot: string;
+  web: string;
+  ios: string;
+}> = [
+  { slot: "输入", web: "14 / 18 / 400", ios: "17 / 22 / 400" },
+  { slot: "壳辅文", web: "13 / 18 / 400", ios: "13 / 18 / 400" },
+  { slot: "数字 / kicker", web: "11 / 14 / 400", ios: "11 / 14 / 400" },
+  { slot: "流内正文", web: "14 / 1.75 / 400", ios: "16 / 1.75 / 400" },
 ];
 
 /**
@@ -84,8 +137,8 @@ export const SHELL_PLACES: ReadonlyArray<{
 export const PROMPT_BAR = {
   title: "Prompt Bar",
   ticket: "SIK-1072",
-  does: "@来源槽 / 命令菜单 / 附件 / 发送或停止。桌面高 40 圆 12；移动高 44，字 16px。",
-  not: "不当 PromptList。不把彩色状态点画成「已接入模型」。不在 canonical 页发模型、假听写、localStorage 会话。",
+  does: "@来源槽 / 命令菜单 / 附件 / 发送或停止。桌面高 40 圆 12 字 14/18/400；移动行高 44 字 14/18/400，栏内圆钮视觉 32、命中 44。",
+  not: "不当 PromptList。不把彩色状态点画成「已接入模型」。不在 canonical 页发模型、假听写、localStorage 会话。不把移动钮画成 44 方块。不把占位撑到 16。",
   tokens: ["@", "/"],
   send: "有正文或附件才可发送。busy 时发送位变停止。",
   dictation: "听写是产品能力。原型 canonical 只留壳位，不注入假字。",
@@ -97,7 +150,7 @@ export const PROMPT_BAR_SLOTS: ReadonlyArray<{
   when: string;
 }> = [
   { id: "plus", name: "添加", when: "打开 @ 菜单或选文件" },
-  { id: "field", name: "输入", when: "常驻。移动 16px。" },
+  { id: "field", name: "输入", when: "常驻。移动视觉 14。" },
   { id: "mic", name: "听写壳位", when: "布局；canonical 不写假听写" },
   { id: "send", name: "发送 / 停止", when: "可发送或 busy" },
   { id: "source-slot", name: "来源槽", when: "钉住的布局芯片。不是 ACL 接通" },
@@ -135,7 +188,7 @@ export const SHELL_COMMANDS = [
 
 export const SHELL_SOURCE_KEYS = [
   { key: "attach", name: "添加图片和文件", desc: "直接进这一轮", attach: true },
-  { key: "bank", name: "错题库", desc: "布局槽 · 不是已接通" },
-  { key: "note", name: "笔记本", desc: "布局槽 · 你记过" },
-  { key: "cal", name: "日历", desc: "布局槽 · 今日截止" },
+  { key: "bank", name: "错题库", desc: "本周错题 / 订正中。布局槽，不是已接通。" },
+  { key: "note", name: "笔记本", desc: "你记过。布局槽，不是已接通。" },
+  { key: "cal", name: "日历", desc: "今日截止。布局槽，不是已接通。" },
 ] as const;

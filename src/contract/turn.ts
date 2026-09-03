@@ -73,6 +73,64 @@ export const WIDGET_FOLD = {
   reason: "落定控件太多会抢走正文。先露卡头，点开再看方法或选项。",
 } as const;
 
+/**
+ * 完整 agent 前端渲染器必须交付的块。开发 agent 按编号抄总览标本，禁止漏态。
+ * 票面：SIK-1066 文案 · 1067 密度 · 1068 Turn · 1070 来源 · 1072 壳 · 1086 双轴/讲题卡 · 1040 运行时 · 1045 Dots · 1050 Path A。
+ */
+export const RENDERER_PACK: ReadonlyArray<{
+  n: string;
+  id: string;
+  name: string;
+  ticket: string;
+  must: string;
+}> = [
+  { n: "01", id: "status", name: "回合态 Dots", ticket: "1045 / 1086", must: "wait/tool/stream/recover/halt/done/stop/error。几何 4px/gap 2px/槽 16×16。elapsed 在行右。" },
+  { n: "02", id: "expert-rail", name: "专家栈", ticket: "1068", must: "仅 live 且非 short/gate。lucide 一行，新芯片从右顶走。" },
+  { n: "03", id: "prose", name: "正文 + 角标", ticket: "1068 / 1070", must: "通栏无框。streaming 无角标。settled 才出 [n]。" },
+  { n: "04", id: "step-log", name: "多步骤", ticket: "1068 / 1086", must: "settled|stop 折叠。不对思考/工具打绿勾。" },
+  { n: "05", id: "approval", name: "确认门", ticket: "1068 / 1086", must: "idle/picked/submit/ok/skip/fail/invalid/reopen。活时挡住正文。" },
+  { n: "06", id: "recommend", name: "推荐卡", ticket: "1068", must: "fold/open/accepting/written/skipped/fail。落定不挡下一问。" },
+  { n: "07", id: "context", name: "Context Card", ticket: "1070", must: "对话 [n] 浮出、你记过、失效「这条已经没了」。不是网页 favicon 条。" },
+  { n: "08", id: "insight", name: "发现卡", ticket: "1068", must: "bars/progress/curve/compare + 空态「这一轮没有新的错因」。" },
+  { n: "09", id: "filter", name: "筛选表", ticket: "1068", must: "落定对照。空态「没有这类错题」。390 改卡片，禁止整页横滚。" },
+  { n: "10", id: "method-youtry", name: "方法卡 / 到你了", ticket: "1086", must: "teach settled。默认折叠。KindTag「方法」「到你了」。标题「下一空自己选」。" },
+  { n: "11", id: "prompt-list", name: "PromptList", ticket: "1068", must: "下一问。全宽 lucide 行。脚印之前。" },
+  { n: "12", id: "footprint", name: "脚印", ticket: "1068", must: "有帮助/没帮助/复制/重新生成/回放/来源 N。仅 settled|stop 且有正文。" },
+  { n: "13", id: "error", name: "ErrorBand", ticket: "1040 / 1032", must: "生成未确认 / 这一轮没有写完。已出字只读。不当成功。" },
+  { n: "14", id: "composer", name: "Prompt Bar", ticket: "1072", must: "来源槽是布局。不发模型。听写只留壳位。" },
+  { n: "15", id: "turn", name: "回合组装", ticket: "1068", must: "同一 Turn 树。四密加减块，不换皮。" },
+  { n: "16", id: "entry", name: "入口 AiMark", ticket: "421 / 1072", must: "32/36/44。无可见「AI」字。" },
+  { n: "17", id: "families", name: "五族", ticket: "1066", must: "PromptList/StatusTag/ActionChip/KindTag/EntityChip 职责不许串。" },
+  { n: "18", id: "motion", name: "出现动画", ticket: "1068 / 1086", must: "卡片 280ms y12 scale.98；widgets 错开 60ms；确认门点选 480ms；折叠 200ms；reduced-motion 全关。" },
+  { n: "19", id: "product-widget", name: "产品 widget 帧", ticket: "395 / 756", must: "13 kind 共用 KindTag「数据」壳。每回合 1 张。未知 kind fail-soft。settled 默认折。" },
+  { n: "20", id: "viewport", name: "1440 / 390 壳", ticket: "1067 / 1072 / 1086", must: "只换 LAYOUT_SCALE 行。歪了先修 X 再修 Y。390 不降正文到 13。" },
+];
+
+/**
+ * 出现动画锁。开发禁止自造弹跳、弹性、扫光。只许这一套。
+ * prefers-reduced-motion：动画全关，瞬间到位。
+ */
+export const ENTER_MOTION: ReadonlyArray<{
+  id: string;
+  dur: string;
+  ease: string;
+  from: string;
+  when: string;
+}> = [
+  { id: "user", dur: "180ms", ease: "cubic-bezier(0.15, 0.85, 0.25, 1)", from: "opacity .4 → 1；y 52 → 0", when: "用户泡进场" },
+  { id: "expert", dur: "380ms", ease: "var(--ease-out)", from: "opacity 0；y 10 → 0", when: "专家芯片进栈" },
+  { id: "chip-slide", dur: "480ms", ease: "var(--ease-out)", from: "track 平移一个 stride", when: "新芯片从右顶走" },
+  { id: "card", dur: "280ms", ease: "var(--ease-out)", from: "opacity 0；y 12；scale .98", when: "确认门 / 推荐 / 发现 / 筛选 / 方法 / 到你了 / Context 首次出现" },
+  { id: "stagger", dur: "60ms × n", ease: "delay only", from: "第 n 张 delay n*60ms", when: "widgets 栈：方法 → 到你了 → PromptList → 脚印" },
+  { id: "row", dur: "200ms", ease: "var(--ease-out)", from: "opacity 0；y 6", when: "PromptList 行、多步骤行" },
+  { id: "cite", dur: "160ms", ease: "var(--ease-out)", from: "opacity 0；y 6", when: "角标旁浮出 Context" },
+  { id: "fold", dur: "200ms", ease: "var(--ease-out)", from: "grid-template-rows 0fr → 1fr", when: "方法 / 到你了 / 推荐格子展开" },
+  { id: "picked", dur: "480ms", ease: "hold then commit", from: "aria-pressed 后等待", when: "确认门点选，480ms 内可改" },
+  { id: "foot", dur: "200ms", ease: "var(--ease-out)", from: "opacity 0", when: "脚印出现，delay 在 widgets 之后" },
+  { id: "error", dur: "200ms", ease: "var(--ease-out)", from: "opacity 0；y 6", when: "ErrorBand" },
+  { id: "source-list", dur: "200ms", ease: "var(--ease-out)", from: "opacity 0；y 8", when: "点脚印「来源 N」后列表" },
+];
+
 export const FOOTPRINT_ACTIONS: ReadonlyArray<{
   id: string;
   label: string;
@@ -262,7 +320,8 @@ export const TYPE_SCALE: ReadonlyArray<{
   { slot: "回合态 · 多步骤 · PromptList", desktop: "12 / 1.4 / 500", mobile: "12 / 1.4 / 500", ios: "13 / 1.4 / 500" },
   { slot: "KindTag · kicker · 脚印数字", desktop: "11 / 1.4 / 400", mobile: "11 / 1.4 / 400", ios: "11 / 1.4 / 400" },
   { slot: "elapsed", desktop: "11 mono", mobile: "11 mono", ios: "11 SF Mono" },
-  { slot: "输入条", desktop: "14 / 1.6 / 400", mobile: "16 / 1.4 / 400", ios: "17 / 1.4 / 400" },
+  { slot: "输入条", desktop: "14 / 18 / 400", mobile: "14 / 18 / 400", ios: "17 / 22 / 400" },
+  { slot: "壳辅文", desktop: "12 / 16 / 400", mobile: "13 / 18 / 400", ios: "13 / 18 / 400" },
 ];
 
 export const LAYOUT_SCALE: ReadonlyArray<{
@@ -277,9 +336,9 @@ export const LAYOUT_SCALE: ReadonlyArray<{
   { slot: "专家栈", desktop: "芯片 22，间距 6，自己一行", mobile: "同左，可横滑", ios: "芯片 28 触控，横滑" },
   { slot: "多步骤行", desktop: "高 22，lucide 槽 16，列 gap 6", mobile: "高 24", ios: "高 28，lucide 槽 16" },
   { slot: "正文", desktop: "通栏无框，段间距 8", mobile: "同左", ios: "同左" },
-  { slot: "Approval / 推荐卡", desktop: "sunken，内边距 16，主钮高 32", mobile: "通栏，主钮高 44", ios: "通栏，主钮高 44" },
-  { slot: "脚印", desktop: "高 28，hover 才拉满对比", mobile: "高 44 触控，常显", ios: "高 44，常显" },
-  { slot: "输入条", desktop: "高 40，圆 12", mobile: "高 44", ios: "高 44，键盘避让" },
+  { slot: "Approval / 推荐卡", desktop: "sunken，内边距 16，主钮视觉 32", mobile: "通栏，主钮视觉 32 · 命中 44", ios: "通栏，主钮视觉 32 · 命中 44" },
+  { slot: "脚印", desktop: "lucide 28，hover 才拉满对比", mobile: "lucide 28 · 命中 44，常显", ios: "lucide 28 · 命中 44，常显" },
+  { slot: "输入条", desktop: "高 40，圆 12，栏内钮 32", mobile: "行 44 字 14，栏内圆钮视觉 32 · 命中 44", ios: "行 44，圆钮 32 · 命中 44，输入 17，键盘避让" },
 ];
 
 export const ALIGN_RULES: ReadonlyArray<{

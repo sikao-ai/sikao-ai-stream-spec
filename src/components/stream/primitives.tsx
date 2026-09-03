@@ -1204,7 +1204,11 @@ export function MethodCard({
           {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
         </span>
       </button>
-      {open ? <p className="sk-gate-reason">{reason}</p> : null}
+      <div className="sk-widget-fold" data-open={open ? "true" : "false"}>
+        <div className="sk-widget-fold-inner">
+          <p className="sk-gate-reason">{reason}</p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1233,7 +1237,11 @@ export function YouTryGate({
           {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
         </span>
       </button>
-      {open ? <PromptList items={items} /> : null}
+      <div className="sk-widget-fold" data-open={open ? "true" : "false"}>
+        <div className="sk-widget-fold-inner">
+          <PromptList items={items} />
+        </div>
+      </div>
     </div>
   );
 }
@@ -1657,7 +1665,7 @@ export function InsightCards({
     <div className="sk-insight" data-testid="ai-insight-cards" data-tone={card.tone} data-viz={card.viz}>
       <div className="sk-insight-top">
         <KindTag kind={card.tone === "ai" ? "data" : card.tone === "risk" ? "action" : "suggest"} label="发现" />
-        <span className="sk-insight-pager">
+        <span className="sk-insight-pager" hidden={items.length <= 1}>
           <button
             type="button"
             className="sk-approve-nav"

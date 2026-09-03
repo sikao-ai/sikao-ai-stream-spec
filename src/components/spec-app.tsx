@@ -16,15 +16,12 @@ import {
 import { hydrateTheme, useAppStore, type DensityId, type SectionId } from "@/lib/app-store";
 import {
   AGENT_STREAM,
-  BANNED,
-  BUI_TO_SIKAO,
   BUI_WIDGETS,
   DENSITIES,
   DENSITY_CHROME,
   DOT_MACHINE,
   DOT_STATES,
   ENTRIES,
-  EVENT_TO_BLOCK,
   FAMILIES,
   HOST_MOUNT,
   TIMING_MATRIX,
@@ -35,15 +32,11 @@ import {
   LAYOUT_SCALE,
   COPY_LOCK,
   ALIGN_RULES,
-  FOOTPRINT_ACTIONS,
-  GAP_CONTRAST,
   HITL,
   LOOKBACK_SOURCE,
   NAV_GROUPS,
-  RENDERER_TERMS,
   RULES,
   SECTIONS,
-  STEALS,
   TOKENS,
   TURN_STATUS,
 } from "@/lib/spec-catalog";
@@ -65,16 +58,18 @@ import {
   WORD_SUPERSESSION,
   WORD_VERSION,
 } from "@/lib/spec-matrix";
-import { SHELL_PLACES } from "@/contract/shell";
+import { PROMPT_BAR, SHELL_PLACES, SOURCE_SLOT_LAYOUT } from "@/contract/shell";
 import { HOST_FIVE, PATH_A } from "@/contract/scenes";
 import { BELOW_ANSWER, WIDGET_FOLD } from "@/contract/turn";
-import { MANIFEST } from "@/contract/manifest";
+
 import { EXPERTS, FOLLOWUPS, SAP_SOURCES, TOOL_PROSE_SETTLED } from "@/player/fixtures/content";
 import { ScenarioPlayer } from "@/player/ScenarioPlayer";
 import { DensityStream } from "@/renderer/TurnRenderer";
 import { PromptBarSpecimen } from "@/renderer/PromptBarSpecimen";
 import { SourceStateTable } from "@/renderer/ContextCardSpecimen";
 import { DockShell } from "@/renderer/DockShell";
+import { Gallery } from "@/components/gallery";
+import { SpecimenRow } from "@/components/specimen-row";
 import { GuidedThreeTrack, ReviewPathADesktop, ReviewPathAMobileGate } from "@/renderer/HostSpecimen";
 import { TurnRenderer } from "@/renderer/TurnRenderer";
 import { getFrame, getScenario } from "@/player/fixtures";
@@ -83,7 +78,6 @@ import {
   AiMark,
   AnswerFootprint,
   AssistantProse,
-  BanLoader,
   ContextCard,
   EntityChip,
   ErrorBand,
@@ -91,7 +85,6 @@ import {
   LiveExpertPlayback,
   OpRow,
   PplxResult,
-  PplxSources,
   PromptList,
   ProposalCard,
   RecommendCard,
@@ -100,8 +93,6 @@ import {
   SceneAiChip,
   StatusTag,
   TurnStatusLine,
-  UserBubble,
-  WaitingNode,
 } from "./stream/primitives";
 
 const ICONS: Record<SectionId, ReactNode> = {
@@ -130,10 +121,12 @@ function GlassesMark() {
 function Frame({
   title,
   kicker,
+  note,
   children,
 }: {
   readonly title: string;
   readonly kicker?: string;
+  readonly note?: string;
   readonly children: ReactNode;
 }) {
   return (
@@ -147,6 +140,7 @@ function Frame({
         <span className="spec-preview-title">{title}</span>
       </div>
       <div className="spec-preview-body">{children}</div>
+      {note ? <p className="spec-preview-note">{note}</p> : null}
     </div>
   );
 }
@@ -176,327 +170,8 @@ function DensityPicker({
   );
 }
 
-function StealSpecimen({ id }: { readonly id: (typeof STEALS)[number]["id"] }) {
-  switch (id) {
-    case "dots":
-      return <WaitingNode label="正在检索考点" />;
-    case "claude":
-      return <UserBubble content="这道题为什么不能选遏制？" />;
-    case "linear":
-      return (
-        <div className="spec-hairline-demo">
-          单一 AI 蓝 · 无描边
-        </div>
-      );
-    case "pplx":
-      return (
-        <div className="sk-result-band">
-          <span className="sk-stem-kicker">结果页扫描</span>
-          <PplxSources items={SAP_SOURCES.slice(0, 2)} />
-        </div>
-      );
-    case "hitl":
-      return (
-        <div className="sk-stack-gap">
-          <TurnStatusLine state="wait" copy="等你选" time="4s" />
-          <ProposalCard
-            blocking
-            title="写入笔记前先确认"
-            reason="接下来会把「遏制势头 / 抑制萌芽」记进今日计划。"
-          />
-        </div>
-      );
-    default:
-      return null;
-  }
-}
-
-function FootprintSpecimen() {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="sk-answer-shell sk-answer-stack">
-      <AssistantProse>
-        <p>「遏制」管已起的势头，语气偏硬。</p>
-      </AssistantProse>
-      <AnswerFootprint
-        sourceCount={SAP_SOURCES.length}
-        sourcesOn={open}
-        onSources={() => setOpen((v) => !v)}
-      />
-      {open ? (
-        <div className="sk-src-after">
-          <span className="sk-stem-kicker">来源</span>
-          <PplxSources items={SAP_SOURCES} />
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
 function Overview() {
-  const setSection = useAppStore((s) => s.setSection);
-  const setDensity = useAppStore((s) => s.setDensity);
-  return (
-    <div className="spec-page">
-      <header className="spec-hero">
-        <span className="spec-kicker">sikao-ai / sikao · SIK-741</span>
-        <h1 className="spec-h1">四密五族，不再发明皮肤</h1>
-        <p className="spec-lede">
-          这是契约实验室，不是半个产品：同一输入状态应画成什么。模型、用户数据、后端状态在主仓。Turn {MANIFEST.turnContractVersion} · Shell {MANIFEST.shellContractVersion} · sikao origin/main {MANIFEST.sikaoOriginMainSha.slice(0, 8)}。骨架：{AGENT_STREAM.order}
-        </p>
-      </header>
-
-      <section>
-        <h2 className="spec-h2">回合渲染器词表</h2>
-        <p className="spec-meta">对齐 Claude content block（thinking / tool_use / text）与 Grok 多步骤折叠。产品 CONTEXT.md 同锁。</p>
-        <div className="spec-table-wrap" tabIndex={0}>
-          <table className="spec-table">
-            <thead>
-              <tr>
-                <th>锁定名</th>
-                <th>English</th>
-                <th>对标</th>
-                <th>不要叫</th>
-              </tr>
-            </thead>
-            <tbody>
-              {RENDERER_TERMS.map((row) => (
-                <tr key={row.en}>
-                  <td>
-                    <strong>{row.name}</strong>
-                  </td>
-                  <td>
-                    <code>{row.en}</code>
-                  </td>
-                  <td>{row.maps}</td>
-                  <td>{row.not}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section>
-        <h2 className="spec-h2">Beautiful UI → 司考组件</h2>
-        <p className="spec-meta">
-          先从 beautifului.dev 偷几何和交互，再按四密裁。land=spec 只在原型；partial 产品有半套；gap
-          产品还不能抄。
-        </p>
-        <div className="spec-table-wrap" tabIndex={0}>
-          <table className="spec-table">
-            <thead>
-              <tr>
-                <th>Beautiful UI</th>
-                <th>偷</th>
-                <th>不偷</th>
-                <th>司考名</th>
-                <th>在回合里干什么</th>
-                <th>产品仓</th>
-                <th>落地</th>
-              </tr>
-            </thead>
-            <tbody>
-              {BUI_TO_SIKAO.map((row) => (
-                <tr key={row.bui}>
-                  <td>{row.bui}</td>
-                  <td>{row.steal}</td>
-                  <td>{row.leave}</td>
-                  <td>
-                    <strong>{row.sikao}</strong>
-                  </td>
-                  <td>{row.role}</td>
-                  <td>{row.product}</td>
-                  <td>{row.land}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section>
-        <h2 className="spec-h2">SSE → 内容块</h2>
-        <p className="spec-meta">产品 decodeConsultStreamItem 必须按此投影，禁止另造机。</p>
-        <div className="spec-table-wrap" tabIndex={0}>
-          <table className="spec-table">
-            <thead>
-              <tr>
-                <th>帧</th>
-                <th>内容块</th>
-                <th>回合渲染</th>
-              </tr>
-            </thead>
-            <tbody>
-              {EVENT_TO_BLOCK.map((row) => (
-                <tr key={row.frame}>
-                  <td>
-                    <code>{row.frame}</code>
-                  </td>
-                  <td>{row.block}</td>
-                  <td>{row.chrome}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section>
-        <h2 className="spec-h2">缺口对照</h2>
-        <p className="spec-meta">
-          执行只抄「原型」列。产品列是现状，不是第二套设计。缺任一项不得把 1068 当完整回合渲染器 Done。
-        </p>
-        <div className="spec-table-wrap" tabIndex={0}>
-          <table className="spec-table">
-            <thead>
-              <tr>
-                <th>id</th>
-                <th>缺口</th>
-                <th>原型（抄这个）</th>
-                <th>产品仓现状</th>
-              </tr>
-            </thead>
-            <tbody>
-              {GAP_CONTRAST.map((row) => (
-                <tr key={row.id}>
-                  <td>
-                    <code>{row.id}</code>
-                  </td>
-                  <td>{row.gap}</td>
-                  <td>{row.prototype}</td>
-                  <td>{row.product}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <h3 className="spec-h3 spec-h3-gap">脚印动作</h3>
-        <div className="spec-table-wrap" tabIndex={0}>
-          <table className="spec-table">
-            <thead>
-              <tr>
-                <th>动作</th>
-                <th>何时出现</th>
-              </tr>
-            </thead>
-            <tbody>
-              {FOOTPRINT_ACTIONS.map((row) => (
-                <tr key={row.id}>
-                  <td>{row.label}</td>
-                  <td>{row.when}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <p className="spec-meta spec-h3-gap">{AGENT_STREAM.footprint}</p>
-      </section>
-
-      <section>
-        <h2 className="spec-h2">四种密度 · 同一套 token</h2>
-        <div className="spec-gallery">
-          {DENSITIES.map((d) => (
-            <article key={d.id} className="spec-preview-frame spec-gallery-card">
-              <button
-                type="button"
-                className="spec-preview-head spec-preview-head-btn"
-                onClick={() => {
-                  setDensity(d.id);
-                  setSection("density");
-                }}
-              >
-                <span className="spec-chip" data-tone="ai">
-                  {d.id}
-                </span>
-                <span className="spec-preview-title">{d.title}</span>
-                <span className="spec-meta">{d.chrome}</span>
-              </button>
-              <div className="spec-preview-body">
-                <DensityStream density={d.id} phase="settled" />
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h2 className="spec-h2">从五处偷，各偷一件</h2>
-        <div className="spec-steal-grid">
-          {STEALS.map((s) => (
-            <article key={s.id} className="spec-steal">
-              <div className="spec-steal-live">
-                <StealSpecimen id={s.id} />
-              </div>
-              <h3 className="spec-h3">{s.from}</h3>
-              <p className="spec-steal-take">要 {s.take}</p>
-              <p className="spec-steal-leave">不要 {s.leave}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h2 className="spec-h2">五族控件 · 不要第六族</h2>
-        <div className="spec-table-wrap" tabIndex={0}>
-          <table className="spec-table">
-            <thead>
-              <tr>
-                <th>族</th>
-                <th>组件</th>
-                <th>干什么</th>
-                <th>不干什么</th>
-              </tr>
-            </thead>
-            <tbody>
-              {FAMILIES.map((f) => (
-                <tr key={f.id}>
-                  <td>
-                    <strong>{f.title}</strong>
-                  </td>
-                  <td>
-                    <code>{f.file}</code>
-                  </td>
-                  <td>{f.does}</td>
-                  <td>{f.not}</td>
-                </tr>
-              ))}
-              <tr>
-                <td>
-                  <strong>{TURN_STATUS.title}</strong>
-                </td>
-                <td>
-                  <code>{TURN_STATUS.file}</code>
-                </td>
-                <td>{TURN_STATUS.does}</td>
-                <td>{TURN_STATUS.not}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section>
-        <h2 className="spec-h2">明确不偷</h2>
-        <div className="spec-ban-row">
-          <BanLoader name="Drive" />
-          <BanLoader name="Orbit" />
-          <BanLoader name="扫光" />
-        </div>
-        <div className="spec-rule-list spec-h3-gap">
-          {BANNED.map((b) => (
-            <div key={b.title} className="spec-rule" data-kind="dont">
-              <span className="spec-rule-tag">不要</span>
-              <div>
-                <h3 className="spec-h3">{b.title}</h3>
-                <p className="spec-meta">{b.body}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-    </div>
-  );
+  return <Gallery />;
 }
 
 function DensityPage() {
@@ -1305,7 +980,7 @@ function Playground() {
           />
         </Frame>
         <Frame title="脚印" kicker="footer">
-          <FootprintSpecimen />
+          <AnswerFootprint sourceCount={2} />
         </Frame>
       </div>
 
@@ -1794,6 +1469,33 @@ function MatrixPage() {
   );
 }
 
+function DockPromptBar() {
+  const [layout, setLayout] = useState<"pinned" | "empty" | "invalid">("pinned");
+  const note = SOURCE_SLOT_LAYOUT.find((s) => s.id === layout);
+  return (
+    <SpecimenRow
+      n="08"
+      title="Prompt Bar"
+      lede={PROMPT_BAR.does}
+      tabs={[
+        { id: "pinned", label: "钉住" },
+        { id: "empty", label: "空" },
+        { id: "invalid", label: "失效" },
+      ]}
+      tab={layout}
+      onTab={(id) => setLayout(id as "pinned" | "empty" | "invalid")}
+      standard={[
+        { k: "see", v: note?.see ?? "" },
+        { k: "rule", v: note?.rule ?? "" },
+        { k: "不要", v: PROMPT_BAR.not },
+      ]}
+      code={`<PromptBarSpecimen layout="${layout}" />`}
+    >
+      <PromptBarSpecimen layout={layout} />
+    </SpecimenRow>
+  );
+}
+
 function DockPage() {
   const setOpen = useAppStore((s) => s.setDockOpen);
   const dockOpen = useAppStore((s) => s.dockOpen);
@@ -1852,17 +1554,7 @@ function DockPage() {
         </table>
       </div>
 
-      <Frame title="Prompt Bar 布局标本" kicker="不发送">
-        <PromptBarSpecimen layout="pinned" />
-      </Frame>
-      <div className="spec-split">
-        <Frame title="来源槽 · 空" kicker="empty">
-          <PromptBarSpecimen layout="empty" />
-        </Frame>
-        <Frame title="来源槽 · 失效" kicker="invalid">
-          <PromptBarSpecimen layout="invalid" />
-        </Frame>
-      </div>
+      <DockPromptBar />
 
       <div className="spec-preview-frame">
         <div className="spec-preview-head">

@@ -49,7 +49,7 @@ export const SECTIONS: ReadonlyArray<{
   kicker: string;
   group: NavGroupId;
 }> = [
-  { id: "overview", label: "总览", kicker: "SSOT", group: "guide" },
+  { id: "overview", label: "总览", kicker: "Gallery", group: "guide" },
   { id: "playground", label: "回合", kicker: "Turn", group: "turn" },
   { id: "density", label: "四密", kicker: "Density", group: "turn" },
   { id: "dock", label: "壳", kicker: "Dock", group: "turn" },
