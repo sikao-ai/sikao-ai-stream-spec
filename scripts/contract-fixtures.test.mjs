@@ -105,6 +105,24 @@ test("shell contract locks Prompt Bar and float/rail/sheet", () => {
   assert.match(shell, /composerWeb: "14 \/ 18 \/ 400"/);
   assert.match(shell, /chromeMeta: "13 \/ 18 \/ 400"/);
   assert.match(shell, /禁止把占位撑到 16/);
+  assert.match(shell, /export const SESSION_MANAGER/);
+  assert.match(shell, /下拉 popover 贴标题/);
+  assert.match(shell, /export const PAGE_LOCATOR/);
+  assert.match(shell, /export const BAR_STATUS/);
+  assert.match(shell, /kicker: "正在看"/);
+  assert.match(shell, /id: "listening"/);
+  assert.match(shell, /不进 dock 顶栏/);
+  assert.match(shell, /为新状态另造皮/);
+  assert.match(shell, /id: "closed"/);
+  assert.match(shell, /id: "empty"/);
+  assert.match(shell, /390 Path A 不挂/);
+  assert.match(shell, /export const SHELL_PACK/);
+  assert.match(shell, /export const SHELL_SCENES/);
+  assert.match(shell, /从这一页接着问/);
+  assert.match(shell, /问这道题/);
+  assert.match(shell, /N−1 条 inset 短线/);
+  assert.match(turn, /id: "session-mgr"/);
+  assert.match(turn, /id: "path-a-390"/);
 });
 
 test("scene fixtures name hosts and exception states", () => {

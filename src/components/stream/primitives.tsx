@@ -688,6 +688,14 @@ const PROMPT_ICONS: Record<string, LucideIcon> = {
   "/近义 对比选项": Columns2,
   对上本周错题: FileText,
   "/复盘 筛一筛": BarChart2,
+  先看宾语再看语气: CircleHelp,
+  下一空自己选: Sprout,
+  标关键句: FileText,
+  对照要点: Columns2,
+  整理成段: ListPlus,
+  讲这题: CircleHelp,
+  标关键条件: FileText,
+  找同类错题: BarChart2,
 };
 
 export function PromptList({

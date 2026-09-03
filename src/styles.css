@@ -646,6 +646,7 @@ body {
 
 .spec-bui-row {
   padding: 40px 0;
+  scroll-margin-top: 64px;
   border-bottom: 1px solid color-mix(in srgb, var(--color-text-meta) 16%, transparent);
 }
 
@@ -703,6 +704,29 @@ body {
 
 .spec-bui-tabs button[data-active="true"] {
   background: var(--color-fill-strong);
+  color: var(--color-bg-page);
+}
+
+.spec-bui-host-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 12px;
+}
+
+.spec-bui-host-tabs button {
+  min-height: 28px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 999px;
+  background: var(--color-bg-sunken);
+  color: var(--color-text-meta);
+  font-size: 11px;
+  font-family: inherit;
+}
+
+.spec-bui-host-tabs button[data-active="true"] {
+  background: var(--color-text-primary);
   color: var(--color-bg-page);
 }
 
@@ -2475,7 +2499,13 @@ button.sk-status-line {
 }
 
 .sk-plist-item:not(:last-child)::after {
-  display: none;
+  content: "";
+  position: absolute;
+  left: calc(var(--turn-icon) + var(--turn-lead-gap));
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: color-mix(in srgb, var(--color-text-meta) 16%, transparent);
 }
 
 .sk-plist-icon {
@@ -4493,7 +4523,111 @@ button.sk-status-line {
 .sk-pbar-chips {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 6px;
+  padding: 2px 4px 6px;
+}
+
+.sk-pbar-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 24px;
+  max-width: 100%;
+  padding: 0 8px 0 7px;
+  border-radius: 8px;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.sk-pbar-status em {
+  flex: none;
+  font-style: normal;
+  font-weight: 600;
+}
+
+.sk-pbar-status b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.sk-pbar-status small {
+  flex: none;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.sk-pbar-status[data-tone="ai"] {
+  background: var(--color-ai-soft);
+  color: var(--color-ai-strong);
+}
+
+.sk-pbar-status[data-tone="ai"] b {
+  color: var(--color-ai-strong);
+}
+
+.sk-pbar-status[data-tone="warn"] {
+  background: color-mix(in srgb, var(--color-state-warn) 16%, transparent);
+  color: var(--color-state-warn-deep, var(--color-state-warn));
+}
+
+.sk-pbar-status[data-tone="ok"] {
+  background: color-mix(in srgb, var(--color-state-ok) 14%, transparent);
+  color: var(--color-state-ok-deep, var(--color-state-ok));
+}
+
+.sk-pbar-status[data-tone="meta"] {
+  background: color-mix(in srgb, var(--color-text-meta) 10%, transparent);
+  color: var(--color-text-meta);
+}
+
+.sk-pbar-status[data-tone="ai"] small {
+  color: var(--color-state-warn-deep, var(--color-state-warn));
+}
+
+.sk-pbar-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex: none;
+}
+
+.sk-pbar-live i {
+  display: block;
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.35;
+}
+
+.sk-pbar-status[data-motion="breathe"] .sk-pbar-live i {
+  animation: sk-pbar-breathe 1.4s ease-in-out infinite;
+}
+
+.sk-pbar-status[data-motion="breathe"] .sk-pbar-live i:nth-child(2) {
+  animation-delay: 0.18s;
+}
+
+.sk-pbar-status[data-motion="breathe"] .sk-pbar-live i:nth-child(3) {
+  animation-delay: 0.36s;
+}
+
+@keyframes sk-pbar-breathe {
+  0%,
+  100% { opacity: 0.28; }
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk-pbar-status[data-motion="breathe"] .sk-pbar-live i {
+    animation: none;
+    opacity: 0.85;
+  }
 }
 
 .sk-pbar-chip {
@@ -4886,17 +5020,54 @@ html[data-dock-place="rail"] .spec-main {
 
 .sk-dock-pop {
   position: absolute;
-  top: 46px;
-  left: 48px;
-  z-index: 4;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 8;
   display: flex;
   flex-direction: column;
-  width: 268px;
-  max-height: 252px;
+  width: 260px;
+  max-width: min(260px, calc(100vw - 24px));
+  max-height: 280px;
   overflow: hidden;
   background: var(--color-bg-surface);
   border-radius: 12px;
-  box-shadow: var(--shadow-l2);
+  box-shadow: var(--shadow-l3);
+}
+
+.spec-sess {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 420px;
+  max-width: 392px;
+  overflow: hidden;
+  background: var(--color-bg-page);
+  border-radius: 18px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-text-meta) 14%, transparent);
+}
+
+.spec-sess .sk-dock-head,
+.spec-sess .sk-dock-thread {
+  position: relative;
+}
+
+.spec-sess .sk-dock-thread {
+  flex: 1;
+}
+
+.spec-sess-ghost {
+  margin: 0;
+  color: var(--color-text-meta);
+  font-size: 13px;
+}
+
+.spec-sess[data-place="ios"] {
+  max-width: 360px;
+  border-radius: 24px;
+}
+
+.spec-sess[data-place="ios"] .sk-dock-head {
+  min-height: 44px;
 }
 
 .sk-dock-sess-new {
@@ -5017,17 +5188,18 @@ html[data-dock-place="rail"] .spec-main {
   height: 28px;
 }
 
-.sk-dock[data-place="ios"] .sk-dock-pop {
-  top: 58px;
-  left: 12px;
-  right: 12px;
-  width: auto;
-  max-height: min(42dvh, 320px);
+.sk-dock[data-place="ios"] .sk-dock-pop,
+.spec-sess[data-place="ios"] .sk-dock-pop {
+  top: calc(100% + 4px);
+  left: 0;
+  right: auto;
+  width: min(280px, 100%);
+  max-height: 240px;
   border-radius: 14px;
-  box-shadow: var(--shadow-l3);
 }
 
-.sk-dock[data-place="ios"] .sk-dock-sess-new {
+.sk-dock[data-place="ios"] .sk-dock-sess-new,
+.spec-sess[data-place="ios"] .sk-dock-sess-new {
   min-height: 44px;
   margin: 6px 6px 0;
   border-radius: 10px;
@@ -5036,15 +5208,20 @@ html[data-dock-place="rail"] .spec-main {
 }
 
 .sk-dock[data-place="ios"] .sk-dock-sess-item,
-.sk-dock[data-place="ios"] .sk-dock-sess-main {
-  min-height: 48px;
+.sk-dock[data-place="ios"] .sk-dock-sess-main,
+.spec-sess[data-place="ios"] .sk-dock-sess-item,
+.spec-sess[data-place="ios"] .sk-dock-sess-main {
+  min-height: 44px;
 }
 
-.sk-dock[data-place="ios"] .sk-dock-sess-copy b {
-  font-size: var(--font-body);
+.sk-dock[data-place="ios"] .sk-dock-sess-copy b,
+.spec-sess[data-place="ios"] .sk-dock-sess-copy b {
+  font-size: 14px;
+  font-weight: 600;
 }
 
-.sk-dock[data-place="ios"] .sk-dock-sess-del {
+.sk-dock[data-place="ios"] .sk-dock-sess-del,
+.spec-sess[data-place="ios"] .sk-dock-sess-del {
   opacity: 1;
   width: 32px;
   height: 32px;
@@ -5066,16 +5243,222 @@ html[data-dock-place="rail"] .spec-main {
   text-align: left;
 }
 
-.sk-dock-empty b {
+.sk-dock-hello {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 4px 10px;
+}
+
+.sk-dock-empty b,
+.sk-dock-hello b {
   display: block;
   color: var(--color-text-primary);
   font-size: var(--font-body);
   font-weight: 600;
-  margin: 0 8px 8px;
 }
 
 .sk-dock-empty .sk-plist {
   width: 100%;
+}
+
+.spec-dock {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 392px;
+  height: 460px;
+  overflow: hidden;
+  background: var(--color-bg-surface);
+  border-radius: 18px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-text-meta) 14%, transparent);
+}
+
+.spec-dock[data-place="rail"] {
+  max-width: 360px;
+  height: 500px;
+  border-radius: 0;
+  box-shadow: inset 1px 0 0 color-mix(in srgb, var(--color-text-meta) 14%, transparent);
+}
+
+.spec-dock[data-place="ios"] {
+  max-width: 360px;
+  border-radius: 24px 24px 12px 12px;
+}
+
+.spec-dock .sk-dock-thread {
+  position: relative;
+  z-index: 1;
+}
+
+.spec-dock .sk-dock-composer {
+  position: relative;
+  z-index: 1;
+  padding: 8px 10px 12px;
+}
+
+.spec-dock[data-place="ios"] .sk-plist-item {
+  min-height: 44px;
+  font-size: 13px;
+}
+
+.spec-dock-gate {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px 32px;
+}
+
+.spec-dock-gate .sk-host-gate {
+  background: transparent;
+  padding: 0;
+  min-height: 0;
+}
+
+.spec-dock-thread-ghost {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.spec-shell-open {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 280px);
+  min-height: 420px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--color-bg-page);
+}
+
+.spec-shell-open[data-place="ios"] {
+  grid-template-columns: 1fr;
+  max-width: 360px;
+  margin-inline: auto;
+  min-height: 0;
+}
+
+.spec-shell-open[data-place="rail"] {
+  grid-template-columns: minmax(0, 1fr) 280px;
+}
+
+.spec-shell-open-page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px;
+}
+
+.spec-shell-open-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 40px;
+  padding: 0 6px 0 12px;
+  border-radius: 12px;
+  background: var(--color-bg-surface);
+  font-size: 12px;
+  color: var(--color-text-meta);
+}
+
+.spec-shell-open-bar[data-size="44"] {
+  min-height: 52px;
+}
+
+.spec-shell-open[data-place="rail"] .spec-shell-open-bar {
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.spec-shell-open-ghost {
+  margin: 0;
+  flex: 1;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--color-bg-surface);
+  color: var(--color-text-meta);
+  font-size: 13px;
+}
+
+.spec-shell-open[data-place="ios"] .spec-dock {
+  max-width: none;
+  border-radius: 24px 24px 0 0;
+}
+
+.spec-shell-open[data-place="rail"] .spec-dock {
+  max-width: none;
+  height: 100%;
+  border-radius: 0;
+}
+
+.spec-shell-open[data-place="float"] .spec-dock {
+  margin: 12px 12px 12px 0;
+  height: calc(100% - 24px);
+  box-shadow: var(--shadow-l3);
+}
+
+.spec-dock[data-place="ios"] .sk-pbar {
+  padding: 6px;
+  border-radius: 20px;
+}
+
+.spec-dock[data-place="ios"] .sk-pbar-grid {
+  grid-template-columns: 44px minmax(0, 1fr) 44px 44px;
+  justify-items: center;
+}
+
+.spec-dock[data-place="ios"] .sk-pbar-field {
+  min-height: 32px;
+  width: 100%;
+  font-size: 14px;
+  line-height: 18px;
+  padding: 7px 4px;
+  justify-self: stretch;
+}
+
+.spec-dock[data-place="ios"] .sk-pbar-icon,
+.spec-dock[data-place="ios"] .sk-pbar-send {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+}
+
+.spec-shell-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 160px;
+  padding: 12px;
+  border-radius: 16px;
+  background: var(--color-bg-page);
+}
+
+.spec-shell-stage-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  padding: 0 4px 0 12px;
+  border-radius: 12px;
+  background: var(--color-bg-surface);
+  font-size: 12px;
+  color: var(--color-text-meta);
+}
+
+.spec-shell-stage[data-entry="top"] .spec-shell-stage-bar {
+  min-height: 52px;
+}
+
+.spec-shell-stage[data-entry="rail"] .spec-shell-stage-bar {
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+.spec-shell-stage-body {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-meta);
 }
 
 .sk-dock-turn {

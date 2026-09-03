@@ -97,13 +97,19 @@ export const RENDERER_PACK: ReadonlyArray<{
   { n: "11", id: "prompt-list", name: "PromptList", ticket: "1068", must: "下一问。全宽 lucide 行。脚印之前。" },
   { n: "12", id: "footprint", name: "脚印", ticket: "1068", must: "有帮助/没帮助/复制/重新生成/回放/来源 N。仅 settled|stop 且有正文。" },
   { n: "13", id: "error", name: "ErrorBand", ticket: "1040 / 1032", must: "生成未确认 / 这一轮没有写完。已出字只读。不当成功。" },
-  { n: "14", id: "composer", name: "Prompt Bar", ticket: "1072", must: "来源槽是布局。不发模型。听写只留壳位。" },
+  { n: "14", id: "composer", name: "Prompt Bar", ticket: "1072", must: "芯片行：BAR_STATUS（正在看 AI 蓝呼吸点）+ @来源。加 kind 不另造皮。不进顶栏。" },
   { n: "15", id: "turn", name: "回合组装", ticket: "1068", must: "同一 Turn 树。四密加减块，不换皮。" },
   { n: "16", id: "entry", name: "入口 AiMark", ticket: "421 / 1072", must: "32/36/44。无可见「AI」字。" },
   { n: "17", id: "families", name: "五族", ticket: "1066", must: "PromptList/StatusTag/ActionChip/KindTag/EntityChip 职责不许串。" },
   { n: "18", id: "motion", name: "出现动画", ticket: "1068 / 1086", must: "卡片 280ms y12 scale.98；widgets 错开 60ms；确认门点选 480ms；折叠 200ms；reduced-motion 全关。" },
   { n: "19", id: "product-widget", name: "产品 widget 帧", ticket: "395 / 756", must: "13 kind 共用 KindTag「数据」壳。每回合 1 张。未知 kind fail-soft。settled 默认折。" },
   { n: "20", id: "viewport", name: "1440 / 390 壳", ticket: "1067 / 1072 / 1086", must: "只换 LAYOUT_SCALE 行。歪了先修 X 再修 Y。390 不降正文到 13。" },
+  { n: "21", id: "open", name: "点开", ticket: "1072 / 421", must: "Scene 32 / Seed 36 / Rail 32 / TopBar 44。aria-expanded 跟壳。不是 FAB。" },
+  { n: "22", id: "welcome", name: "欢迎与预选项", ticket: "1072 / 741 / 1050", must: "空会话欢迎在 composer 之上。预选项全宽 lucide 行。每场景一份。" },
+  { n: "23", id: "session-mgr", name: "会话管理器", ticket: "1072 / 459 / 1050", must: "标题整块可点。下拉 popover 贴标题，不铺满面板。今天/更早。当前 sunk。新对话置顶。" },
+  { n: "24", id: "places", name: "浮层 / 右栏 / sheet", ticket: "1072", must: "float 右下不占主列；rail 占宽；sheet handle + 底。流内皮同一 Turn。" },
+  { n: "25", id: "scenes", name: "各场景欢迎", ticket: "1072 / 1050", must: "总览/讲题/笔记/Tutor/Guided/Path A 各有欢迎语、占位、预选项。Guided 只在对话轨。" },
+  { n: "26", id: "path-a-390", name: "Path A 390 门", ticket: "1050", must: "AiMark +「请在桌面端使用」。不挂 Host、会话、预选项、composer。" },
 ];
 
 /**

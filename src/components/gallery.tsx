@@ -1,11 +1,32 @@
 import { useState } from "react";
 import { SpecimenRow } from "@/components/specimen-row";
-import { PromptBarSpecimen } from "@/renderer/PromptBarSpecimen";
+import { PromptBarSpecimen, type PromptBarLayout } from "@/renderer/PromptBarSpecimen";
 import { ProductWidget } from "@/renderer/ProductWidget";
 import { DensityStream } from "@/renderer/TurnRenderer";
 import { ViewportShell } from "@/renderer/ViewportShell";
+import { SessionManagerSpecimen, type SessionMgrState } from "@/renderer/SessionManagerSpecimen";
+import {
+  DockFrame,
+  ShellOpenSpecimen,
+  ShellPlaceSpecimen,
+  type ShellEntry,
+  type ShellSceneId,
+} from "@/renderer/DockFrame";
 import { PRODUCT_WIDGETS, type ProductWidgetId } from "@/contract/widgets";
-import { MOBILE_CHROME_ROWS, MOBILE_TYPE_ROWS } from "@/contract/shell";
+import {
+  MOBILE_CHROME_ROWS,
+  MOBILE_TYPE_ROWS,
+  BAR_STATUS,
+  PAGE_LOCATOR,
+  SESSION_MANAGER,
+  SESSION_MANAGER_ROWS,
+  SESSION_MANAGER_STATES,
+  SHELL_OPEN,
+  SHELL_PLACES,
+  SHELL_PRESET,
+  SHELL_SCENES,
+  type DockPlace,
+} from "@/contract/shell";
 import {
   EXPERTS,
   FOLLOWUPS,
@@ -42,7 +63,7 @@ import {
 
 export function Gallery() {
   const [dots, setDots] = useState<DotsState>("wait");
-  const [bar, setBar] = useState("pinned");
+  const [bar, setBar] = useState<PromptBarLayout>("locator");
   const [prose, setProse] = useState("settled");
   const [density, setDensity] = useState<DensityId>("teach");
   const [gate, setGate] = useState<ApproveSpecimen>("idle");
@@ -54,7 +75,16 @@ export function Gallery() {
   const [motion, setMotion] = useState("settled");
   const [motionTick, setMotionTick] = useState(0);
   const [widget, setWidget] = useState<ProductWidgetId | "unknown">("cause_distribution");
+  const [sess, setSess] = useState<SessionMgrState>("open");
+  const [entry, setEntry] = useState<ShellEntry>("scene");
+  const [welcomeHost, setWelcomeHost] = useState<ShellSceneId>("overview");
+  const [presetWhere, setPresetWhere] = useState<"empty" | "turn">("empty");
+  const [dockPlace, setDockPlace] = useState<DockPlace>("float");
+  const [sceneHost, setSceneHost] = useState<ShellSceneId>("overview");
   const widgetSpec = widget === "unknown" ? null : PRODUCT_WIDGETS.find((w) => w.id === widget);
+  const sessRow = SESSION_MANAGER_STATES.find((s) => s.id === sess);
+  const welcomeMeta = SHELL_SCENES.find((s) => s.id === welcomeHost);
+  const sceneMeta = SHELL_SCENES.find((s) => s.id === sceneHost);
 
   const gateRow = HITL_APPROVE_STATES.find((s) => s.id === gate);
   const recRow = HITL_REC_STATES.find((s) => s.id === rec);
@@ -65,7 +95,7 @@ export function Gallery() {
         <span className="spec-kicker">SIK-1086 及关联票 · 渲染器整包</span>
         <h1 className="spec-h1">Agent 前端渲染器视觉合约</h1>
         <p className="spec-lede">
-          开发按编号抄左边标本、右边标准与代码。漏一块、漏一态都不算交付。票面：1066 文案、1067 密度、1068 Turn、1070 来源、1072 壳、1086 双轴/讲题卡、1040 运行时、1045 Dots、1050 Path A。
+          开发按编号抄左边标本、右边标准与代码。漏一块、漏一态都不算交付。01–20 是回合内皮；21–26 是壳：点开、欢迎、预选项、会话管理器、三壳、各场景、Path A 390。票面：1066 文案、1067 密度、1068 Turn、1070 来源、1072 壳、1086 双轴/讲题卡、1040 运行时、1045 Dots、1050 Path A。
         </p>
       </header>
 
@@ -491,26 +521,46 @@ export function Gallery() {
       <SpecimenRow
         n="14"
         title="Prompt Bar"
-        lede="Composer：@来源、/命令、听写壳位、发送或停止。"
-        px="桌面高 40 圆 12 字 14 栏内钮 32 · 移动行 44 字 14 · 圆钮视觉 32 命中 44"
-        xy={{ x: "加号 / 输入 / 听写 / 发送同一栅格", y: "图标垂直中心" }}
-        forbid="彩色接通点；假听写灌字；把 PromptList 做成 composer；canonical 发模型"
-        checks={["来源槽只是布局", "空槽不占位", "失效芯片留着", "busy 发送位变停止"]}
+        lede="芯片行是可扩展 status + @来源。正在看是第一种：AI 蓝、三点呼吸。加新状态只在 BAR_STATUS 加一行。"
+        px="芯片高 24 · kicker 11/600 · 路径 12/500 · 点 4px · 呼吸 1.4s · 输入 40/14"
+        xy={{ x: "status 最左，@来源在右。加号/输入/听写/发送同一栅格", y: "芯片与输入格左齐。三点与文案垂直中心" }}
+        forbid="status 进 dock 顶栏；两种芯片合成一颗；为新状态另造皮；彩色接通点；假听写"
+        checks={[
+          "正在看在芯片行，AI 蓝 + 呼吸点",
+          "切面只改 path",
+          "未保存叠 extra，不另造皮",
+          "无芯片则行不占位",
+          "新 kind 只加 BAR_STATUS 一行",
+        ]}
         tabs={[
-          { id: "pinned", label: "钉住" },
+          { id: "locator", label: "正在看" },
+          { id: "both", label: "看+来源" },
+          { id: "dirty", label: "未保存" },
+          { id: "listening", label: "正在听" },
           { id: "empty", label: "空" },
           { id: "invalid", label: "失效" },
         ]}
         tab={bar}
-        onTab={setBar}
+        onTab={(id) => setBar(id as PromptBarLayout)}
         standard={[
-          { k: "ticket", v: "SIK-1072" },
-          { k: "要", v: "来源槽是布局。能否进上下文由主仓 DTO/ACL 决定。" },
-          { k: "不要", v: "彩色接通点；假听写；把 PromptList 做成 composer" },
+          { k: "位置", v: PAGE_LOCATOR.where },
+          { k: "字", v: PAGE_LOCATOR.type },
+          ...Object.values(BAR_STATUS).map((s) => ({
+            k: s.id,
+            v: `${s.kicker} · ${s.tone} · ${s.mark}/${s.motion} · ${s.note}`,
+          })),
         ]}
-        code={`<PromptBarSpecimen layout="${bar}" />`}
+        code={
+          bar === "listening"
+            ? `<PromptBarSpecimen chips={[{ type: "status", status: "listening" }]} />`
+            : bar === "dirty"
+              ? `<PromptBarSpecimen chips={[{ type: "status", status: "looking", path: "资料题同比 · 笔记", extra: "未保存" }]} />`
+              : bar === "both"
+                ? `<PromptBarSpecimen chips={[{ type: "status", status: "looking", path: "总览" }, { type: "source", label: "@错题库" }]} />`
+                : `<PromptBarSpecimen chips={[{ type: "status", status: "looking", path: "总览" }]} />`
+        }
       >
-        <PromptBarSpecimen layout={bar as "pinned" | "empty" | "invalid"} />
+        <PromptBarSpecimen layout={bar} />
       </SpecimenRow>
 
       <SpecimenRow
@@ -716,6 +766,194 @@ grid-template-rows: 0fr → 1fr; transition: 200ms;`}
         code={`<ViewportShell />`}
       >
         <ViewportShell />
+      </SpecimenRow>
+
+      <SpecimenRow
+        n="21"
+        title="点开"
+        lede={SHELL_OPEN.trigger}
+        px="Scene 32 · Seed 36 · Rail 32 · TopBar 44。触控地板 44。"
+        xy={{ x: "标在顶栏/轨上，不是 FAB", y: "图标在 sunken 壳内居中" }}
+        forbid={SHELL_OPEN.not}
+        checks={["五入口同一颗标", "aria-expanded 跟壳", "展开态 ai-soft", "280ms 开合，reduced-motion 关"]}
+        tabs={[
+          { id: "scene", label: "Scene 32" },
+          { id: "seed", label: "Seed 36" },
+          { id: "rail", label: "Rail" },
+          { id: "top", label: "TopBar 44" },
+        ]}
+        tab={entry}
+        onTab={(id) => setEntry(id as ShellEntry)}
+        standard={[
+          { k: "动效", v: SHELL_OPEN.motion },
+          { k: "展开", v: SHELL_OPEN.expanded },
+          { k: "不要", v: SHELL_OPEN.not },
+        ]}
+        code={
+          entry === "seed"
+            ? `<DockFrame surface="welcome" />`
+            : `<SceneAiChip size={${entry === "top" ? 44 : 32}} expanded />`
+        }
+      >
+        <ShellOpenSpecimen entry={entry} />
+      </SpecimenRow>
+
+      <SpecimenRow
+        n="22"
+        title="欢迎与预选项"
+        lede={SHELL_PRESET.emptyWhere}
+        px={`${SHELL_PRESET.type} · 空会话 ${SHELL_PRESET.maxEmpty} · 回合 ${SHELL_PRESET.maxTurn}`}
+        xy={{ x: "lucide 16 列左齐欢迎文案", y: "欢迎贴 composer 之上，不是贴顶" }}
+        forbid={SHELL_PRESET.not}
+        checks={[
+          "空会话：欢迎 + 预选项在 composer 上",
+          "回合下一问在 widgets，脚印前",
+          "N−1 条 inset 短线，末行无线",
+          "无描边 pill",
+          "每场景一份，禁止三处各挂",
+        ]}
+        tabs={[
+          { id: "empty", label: "空会话" },
+          { id: "turn", label: "回合下一问" },
+        ]}
+        tab={presetWhere}
+        onTab={(id) => setPresetWhere(id as "empty" | "turn")}
+        standard={[
+          { k: "空会话", v: SHELL_PRESET.emptyWhere },
+          { k: "回合", v: SHELL_PRESET.turnWhere },
+          { k: "样式", v: SHELL_PRESET.style },
+          { k: "欢迎", v: welcomeMeta ? `${welcomeMeta.hello} · ${welcomeMeta.placeholder}` : "" },
+        ]}
+        code={`<DockFrame surface="${presetWhere === "turn" ? "thread" : "welcome"}" scene="${welcomeHost}" />`}
+      >
+        <div className="spec-bui-host-tabs">
+          {SHELL_SCENES.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              data-active={welcomeHost === s.id}
+              onClick={() => setWelcomeHost(s.id)}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+        <DockFrame
+          place={welcomeMeta?.defaultPlace ?? "float"}
+          scene={welcomeHost}
+          surface={presetWhere === "turn" ? "thread" : "welcome"}
+        />
+      </SpecimenRow>
+
+      <SpecimenRow
+        n="23"
+        title="会话管理器"
+        lede={SESSION_MANAGER.does}
+        px="入口高 32 · 标题 14/600 ellipsis · chevron 12 · 行 36/12 · 390 行 44/14 · 删除桌面 hover、窄屏常显"
+        xy={{
+          x: "AiMark 左 · 标题按钮吃掉中间 · 钉/收起右齐",
+          y: "下拉卡顶贴标题底 4px，thread 仍可见。",
+        }}
+        forbid="feed 里第二组切换器；铺满面板；portal 出 dock；role=menu；tooltip 写「会话管理」；localStorage；390 Path A 挂上"
+        checks={[
+          "标题整块可点，可及名=可见标题",
+          "popover 贴标题，宽 260，不铺满",
+          "今天 / 更早；当前 sunk，不是 pill",
+          "新对话在列表顶",
+          "canonical 不写 localStorage",
+          "390 Path A 不挂",
+        ]}
+        tabs={SESSION_MANAGER_STATES.map((s) => ({
+          id: s.id,
+          label: ({ closed: "收起", open: "打开", empty: "空", long: "长名", ios: "390" } as const)[s.id],
+        }))}
+        tab={sess}
+        onTab={(id) => setSess(id as SessionMgrState)}
+        standard={[
+          { k: "see", v: sessRow?.see ?? "" },
+          { k: "rule", v: sessRow?.rule ?? "" },
+          { k: "票", v: SESSION_MANAGER.ticket },
+          ...SESSION_MANAGER_ROWS.map((row) => ({ k: row.slot, v: `${row.do} / 禁止 ${row.dont}` })),
+        ]}
+        code={`<SessionManagerSpecimen state="${sess}" />`}
+      >
+        <SessionManagerSpecimen state={sess} />
+      </SpecimenRow>
+
+      <SpecimenRow
+        n="24"
+        title="浮层 / 右栏 / sheet"
+        lede="同一套皮，只换壳位。流内皮仍是同一 Turn，不另起过程条。"
+        px="float 392×580 右下 · rail occupied-width · sheet 360 底 + handle"
+        xy={{ x: "float/rail 不挡主列阅读起点；sheet 通栏左右 16", y: "composer 钉底。键盘避让只在 sheet。" }}
+        forbid="两套壳同时开；390 用桌面浮层；FAB；流内皮另画过程条"
+        checks={[
+          "float 不占主列",
+          "rail 浮层钮改 PiP",
+          "sheet handle + 底，输入 14",
+          "同一时刻一个壳",
+        ]}
+        tabs={SHELL_PLACES.map((p) => ({ id: p.id, label: p.label }))}
+        tab={dockPlace}
+        onTab={(id) => setDockPlace(id as DockPlace)}
+        standard={SHELL_PLACES.map((p) => ({ k: p.label, v: `${p.geometry} · ${p.note}` }))}
+        code={`<DockFrame place="${dockPlace}" surface="welcome" />`}
+      >
+        <ShellPlaceSpecimen place={dockPlace} />
+      </SpecimenRow>
+
+      <SpecimenRow
+        n="25"
+        title="各场景欢迎"
+        lede="换场景只换欢迎语、占位、预选项。不换皮、不另起过程条。"
+        px="欢迎 14/600 · 预选项 12/500 · 占位跟 Prompt Bar"
+        xy={{ x: "Seed 36 左、欢迎文案中。lucide 左齐。", y: "欢迎贴底，composer 之下不再挂预选项。" }}
+        forbid="按场景换肤；Guided 预选项进材料/方向；Path A 390 挂预选项；三处各一份"
+        checks={[
+          "六场景欢迎语不同",
+          "Guided 只在对话轨",
+          "Path A 桌面 Modal+同一 dock",
+          "占位写在输入条，不写在欢迎里重复",
+        ]}
+        tabs={SHELL_SCENES.map((s) => ({ id: s.id, label: s.label }))}
+        tab={sceneHost}
+        onTab={(id) => setSceneHost(id as ShellSceneId)}
+        standard={[
+          { k: "欢迎", v: sceneMeta?.hello ?? "" },
+          { k: "占位", v: sceneMeta?.placeholder ?? "" },
+          { k: "预选", v: sceneMeta?.presets.join(" · ") ?? "" },
+          { k: "位置", v: sceneMeta?.where ?? "" },
+          { k: "默认壳", v: sceneMeta?.defaultPlace ?? "" },
+        ]}
+        code={`<DockFrame scene="${sceneHost}" place="${sceneMeta?.defaultPlace ?? "float"}" surface="welcome" />`}
+      >
+        <DockFrame
+          place={sceneMeta?.defaultPlace ?? "float"}
+          scene={sceneHost}
+          surface="welcome"
+        />
+      </SpecimenRow>
+
+      <SpecimenRow
+        n="26"
+        title="Path A 390 门"
+        lede="复盘教师窄屏只留桌面门。半套比没有更糟。"
+        px="AiMark 36 · 标题 16/600 · 说明 13"
+        xy={{ x: "标与文案居中", y: "垂直居中于 sheet，无 composer" }}
+        forbid="挂 Host；挂会话；挂预选项；挂 composer；发 /runs；写「可以对话但不能操作」"
+        checks={[
+          "文案「复盘教师 Agent 请在桌面端使用」",
+          "说明「移动端完整适配后续提供」",
+          "没有输入条",
+          "没有会话管理器",
+        ]}
+        standard={[
+          { k: "桌面", v: "Modal + 同一 dock。不得 close/open 重挂。" },
+          { k: "390", v: "只留门。不挂 Host / 会话 / 预选项 / composer。" },
+        ]}
+        code={`<DockFrame surface="gate" />`}
+      >
+        <DockFrame surface="gate" />
       </SpecimenRow>
     </div>
   );

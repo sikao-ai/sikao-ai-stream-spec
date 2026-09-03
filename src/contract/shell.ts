@@ -58,7 +58,7 @@ export const SHELL_PLACES: ReadonlyArray<{
     id: "float",
     label: "浮层",
     when: "桌面默认。Rail ⌘J / SceneAiChip 打开。",
-    geometry: "右下浮层，不占主列。会话管理器 popover 占满面板。",
+    geometry: "右下浮层，不占主列。会话管理器 popover 贴标题。",
     note: "入口不是 FAB。",
   },
   {
@@ -72,7 +72,7 @@ export const SHELL_PLACES: ReadonlyArray<{
     id: "ios",
     label: "Web 移动 sheet",
     when: "≤720 或显式 iOS 标本。H17：功能 = Web 移动。",
-    geometry: "底 sheet + handle。输入行 44，栏内圆钮视觉 32、命中 44。键盘避让。",
+    geometry: "底 sheet + handle。输入行 44，栏内圆钮视觉 32、命中 44。会话列表通栏，行 44。键盘避让。Path A 不挂会话管理器。",
     note: "iPad 未拍板，禁止外推。",
   },
 ];
@@ -137,8 +137,8 @@ export const MOBILE_TYPE_ROWS: ReadonlyArray<{
 export const PROMPT_BAR = {
   title: "Prompt Bar",
   ticket: "SIK-1072",
-  does: "@来源槽 / 命令菜单 / 附件 / 发送或停止。桌面高 40 圆 12 字 14/18/400；移动行高 44 字 14/18/400，栏内圆钮视觉 32、命中 44。",
-  not: "不当 PromptList。不把彩色状态点画成「已接入模型」。不在 canonical 页发模型、假听写、localStorage 会话。不把移动钮画成 44 方块。不把占位撑到 16。",
+  does: "芯片行在输入格之上：页面 locator（正在看）+ @来源槽。/命令、附件、听写、发送。桌面高 40 圆 12 字 14；移动行 44 字 14，圆钮视觉 32。",
+  not: "不当 PromptList。locator 不进 dock 顶栏。不把彩色状态点画成「已接入模型」。不在 canonical 页发模型、假听写、localStorage 会话。",
   tokens: ["@", "/"],
   send: "有正文或附件才可发送。busy 时发送位变停止。",
   dictation: "听写是产品能力。原型 canonical 只留壳位，不注入假字。",
@@ -153,10 +153,80 @@ export const PROMPT_BAR_SLOTS: ReadonlyArray<{
   { id: "field", name: "输入", when: "常驻。移动视觉 14。" },
   { id: "mic", name: "听写壳位", when: "布局；canonical 不写假听写" },
   { id: "send", name: "发送 / 停止", when: "可发送或 busy" },
+  { id: "status", name: "状态芯片", when: "正在看 / 未保存 / 正在听。芯片行。不进顶栏。可加新 kind。" },
   { id: "source-slot", name: "来源槽", when: "钉住的布局芯片。不是 ACL 接通" },
   { id: "file-slot", name: "附件槽", when: "本轮文件名" },
   { id: "menu", name: "@ / 命令菜单", when: "token 解析后" },
 ];
+
+/**
+ * Prompt Bar 状态芯片。正在看是第一种。加新状态只在本表加一行，不另造芯片皮。
+ * 切 Tab / 开题只改 path。不进 dock 顶栏。
+ */
+export const BAR_STATUS_IDS = ["looking", "dirty", "listening"] as const;
+export type BarStatusId = (typeof BAR_STATUS_IDS)[number];
+
+export const BAR_STATUS: Record<
+  BarStatusId,
+  {
+    id: BarStatusId;
+    kicker: string;
+    tone: "ai" | "warn" | "ok" | "meta";
+    mark: "dots" | "none";
+    motion: "breathe" | "none";
+    note: string;
+  }
+> = {
+  looking: {
+    id: "looking",
+    kicker: "正在看",
+    tone: "ai",
+    mark: "dots",
+    motion: "breathe",
+    note: "页面 locator。AI 蓝 + 三点呼吸。切面只改 path。",
+  },
+  dirty: {
+    id: "dirty",
+    kicker: "未保存",
+    tone: "warn",
+    mark: "none",
+    motion: "none",
+    note: "可叠在 looking 的 extra，或单独一颗。不抢 editor focus。",
+  },
+  listening: {
+    id: "listening",
+    kicker: "正在听",
+    tone: "ai",
+    mark: "dots",
+    motion: "breathe",
+    note: "听写占用。预留 kind。canonical 不灌假字。",
+  },
+};
+
+export const PAGE_LOCATOR = {
+  kicker: BAR_STATUS.looking.kicker,
+  where: "Prompt Bar 芯片行最左，输入格之上。不进 dock 顶栏。",
+  type: "kicker 11 · 路径 12/500 · 三点 4px 呼吸 · 底 ai-soft",
+  update: "snapshot 一变就改。不等模型。",
+  not: "顶栏第二行；第六族 pill；可点进路由；跟 @来源画成同一种芯片；为新状态另造皮。",
+} as const;
+
+export const PAGE_LOCATOR_STATES: ReadonlyArray<{
+  id: "none" | "page" | "path-a" | "dirty" | "page-source" | "listening";
+  see: string;
+  rule: string;
+}> = [
+  { id: "none", see: "无芯片，行不占位", rule: "没有页面上下文时不留空高。" },
+  { id: "page", see: "正在看 · 总览", rule: "AI 蓝 + 呼吸点。切面只改路径。" },
+  { id: "path-a", see: "正在看 · 资料题同比 · 解析", rule: "题短标题 · 解析/考点/笔记。" },
+  { id: "dirty", see: "… · 笔记 · 未保存", rule: "warning 色叠在 looking 上。" },
+  { id: "page-source", see: "status 左、@来源右，同一行", rule: "两种芯片，不许合成一颗。" },
+  { id: "listening", see: "正在听", rule: "同一套 status 芯片。不灌假字。" },
+];
+
+export type BarChip =
+  | { type: "status"; status: BarStatusId; path?: string; extra?: string }
+  | { type: "source"; label: string; invalid?: boolean };
 
 /**
  * Verified source-slot layouts. Color is a layout token, not a live connector.
@@ -176,6 +246,173 @@ export const SOURCE_SLOT_LAYOUT: ReadonlyArray<{
     id: "invalid",
     see: "芯片留着，标记已失效",
     rule: "不从布局消失。不假装还能检索。",
+  },
+];
+
+/**
+ * Dock 顶栏会话管理器。布局标本，不写 localStorage、不接会话账本。
+ * 产品 CRUD / Subject 过滤在主仓（SIK-459 / 1050）。
+ */
+export const SESSION_MANAGER = {
+  title: "会话管理器",
+  ticket: "SIK-1072 / 459 / 1050",
+  does: "标题整块可点。下拉 popover 贴标题，宽 260、高不超过 280。今天/更早。当前 sunk。新对话置顶。canonical 只画布局。",
+  not: "不当 feed 里第二组切换器。不铺满面板。不 portal 出 dock。不用 role=menu。tooltip 不写「会话管理」。390 Path A 不挂。不写 localStorage。",
+} as const;
+
+export const SESSION_MANAGER_STATES: ReadonlyArray<{
+  id: "closed" | "open" | "empty" | "long" | "ios";
+  see: string;
+  rule: string;
+}> = [
+  { id: "closed", see: "AiMark + 标题 + chevron。ellipsis。", rule: "可及名=可见标题。title 属性=全名。" },
+  { id: "open", see: "下拉卡贴标题。thread 仍可见。", rule: "Esc / 点外 / 再点标题关闭。同一时刻只开这一层。" },
+  { id: "empty", see: "只有「新对话」，不画空插画。", rule: "不写「暂无会话」。" },
+  { id: "long", see: "长名 ellipsis。悬停 title 恢复全名。", rule: "禁止 tooltip 写成「会话管理」。" },
+  { id: "ios", see: "sheet 通栏。行命中 44。删除常显。", rule: "圆钮视觉 32。Path A 不挂会话管理器。" },
+];
+
+export const SESSION_MANAGER_ROWS: ReadonlyArray<{
+  slot: string;
+  do: string;
+  dont: string;
+}> = [
+  { slot: "入口", do: "AiMark 18 + 标题按钮 flex 1 + chevron 12。", dont: "独立四字「会话管理」钮。" },
+  { slot: "面板", do: "absolute 贴标题下，宽 260 max-height 280，shadow-l3。", dont: "铺满面板；portal 出 dock。" },
+  { slot: "分组", do: "今天 / 更早。kicker 11。", dont: "按科目把别人的会话混进来。" },
+  { slot: "行", do: "标题 12/600 + 相对时间 11。当前 sunk。", dont: "「当前」第六族 pill。" },
+  { slot: "新对话", do: "列表顶，Plus 14。", dont: "顶栏再放一颗 +。" },
+  { slot: "删除", do: "桌面 hover 显；390 常显，命中 44。", dont: "滑删才露出。" },
+  { slot: "390", do: "行 44。字 14。Path A 不挂。", dont: "桌面浮层菜单；把图标画成 44 方块。" },
+];
+
+export const SESSION_FIXTURES: ReadonlyArray<{
+  id: string;
+  title: string;
+  when: string;
+  group: "今天" | "更早";
+  preview: string;
+}> = [
+  { id: "a", title: "遏制 vs 抑制", when: "刚刚", group: "今天", preview: "「遏制」管已起的势头" },
+  { id: "b", title: "近义对比", when: "2 小时前", group: "今天", preview: "宾语决定语气" },
+  { id: "c", title: "本周订正计划", when: "昨天", group: "更早", preview: "先看错因再排计划" },
+];
+
+export const SESSION_LONG_TITLE =
+  "为什么这道逻辑填空不能选遏制而要选抑制萌芽还要把近义记进今日计划";
+
+/**
+ * 完整壳。开发按编号抄：点开 → 欢迎/预选项 → 会话管理器 → 三壳 → 各场景 → Path A 390。
+ * Prompt Bar / 会话管理器细节见上方专表。这里锁位置、文案、禁止项。
+ */
+export const SHELL_PACK: ReadonlyArray<{
+  n: string;
+  id: string;
+  name: string;
+  ticket: string;
+  must: string;
+}> = [
+  { n: "21", id: "open", name: "点开", ticket: "1072 / 421", must: "Scene 32 / Seed 36 / Rail 32 / TopBar 44。aria-expanded 跟壳。不是 FAB。" },
+  { n: "22", id: "welcome", name: "欢迎与预选项", ticket: "1072 / 741 / 1050", must: "空会话：欢迎在 composer 之上。预选项全宽 lucide 行。每场景一份，禁止 Welcome/feed/header 各挂一份。" },
+  { n: "23", id: "session-mgr", name: "会话管理器", ticket: "1072 / 459 / 1050", must: "标题整块可点。下拉 popover 贴标题，不铺满面板。今天/更早。当前 sunk。新对话置顶。canonical 不写 localStorage。390 Path A 不挂。" },
+  { n: "24", id: "places", name: "浮层 / 右栏 / sheet", ticket: "1072", must: "float 右下不占主列；rail 占宽，浮层钮改 PiP；sheet handle + 底。流内皮同一 Turn。" },
+  { n: "25", id: "scenes", name: "各场景欢迎", ticket: "1072 / 1050", must: "总览/讲题/笔记/Tutor/Guided/Path A 各有欢迎语、占位、预选项。Guided 只在对话轨。" },
+  { n: "26", id: "path-a-390", name: "Path A 390 门", ticket: "1050", must: "AiMark +「请在桌面端使用」。不挂 Host、会话、预选项、composer。" },
+];
+
+export const SHELL_OPEN = {
+  trigger: "同一颗 SceneAiChip。Scene 32 · Seed/welcome 36 · Rail 32 · TopBar 44。",
+  expanded: "aria-expanded 跟 dock 开合。展开态 ai-soft 洗。",
+  motion: "280ms ease-out。float 从右下；rail 占 occupied-width；sheet 从底上。reduced-motion 瞬间到位。",
+  not: "FAB；第二颗入口；描边蓝 pill；可见「AI」字。",
+} as const;
+
+export const SHELL_PRESET = {
+  emptyWhere: "空会话欢迎下方、composer 上方。margin-top:auto 贴底。不是顶栏 chips。",
+  turnWhere: "回合 widgets 槽，脚印之前。",
+  style: "全宽 lucide 行。图标列 16。N−1 条 inset 短线。末行无线。无描边 pill。",
+  type: "桌面 12/1.4/500。390 行命中 44，字 13。",
+  maxEmpty: "3–5",
+  maxTurn: "≤3",
+  not: "Welcome、feed、Modal header 各一份；材料/方向轨；脚印下；Path A 390；描边 pill。",
+} as const;
+
+export const SHELL_SCENES: ReadonlyArray<{
+  id: "overview" | "teach" | "notes" | "tutor" | "guided" | "review-path-a";
+  label: string;
+  defaultPlace: DockPlace;
+  hello: string;
+  sessionTitle: string;
+  locator: string;
+  placeholder: string;
+  presets: readonly string[];
+  where: string;
+}> = [
+  {
+    id: "overview",
+    label: "总览",
+    defaultPlace: "float",
+    hello: "从这一页接着问",
+    sessionTitle: "本周订正",
+    locator: "总览",
+    placeholder: "问这轮要看什么…",
+    presets: ["本周先订哪几道", "/计划 写入这 3 道", "/复盘 看错因"],
+    where: "Home dock。默认浮层。",
+  },
+  {
+    id: "teach",
+    label: "讲题",
+    defaultPlace: "float",
+    hello: "问这道题",
+    sessionTitle: "这一空",
+    locator: "这一空",
+    placeholder: "问这道题，或把题面拖进来…",
+    presets: ["/讲题 这一空怎么拆", "/近义 对比选项", "干扰项怎么设计"],
+    where: "题面在主列。栏不复制题面。",
+  },
+  {
+    id: "notes",
+    label: "笔记",
+    defaultPlace: "float",
+    hello: "整理这条，或补一句",
+    sessionTitle: "近义干扰",
+    locator: "近义干扰",
+    placeholder: "整理这条，或补一句…",
+    presets: ["对上本周错题", "/复盘 筛一筛"],
+    where: "对着已有笔记。来源槽钉 @笔记本。",
+  },
+  {
+    id: "tutor",
+    label: "Tutor",
+    defaultPlace: "float",
+    hello: "从诊断接着问",
+    sessionTitle: "诊断这一步",
+    locator: "诊断这一步",
+    placeholder: "问这步，或让我换种拆法…",
+    presets: ["先看宾语再看语气", "下一空自己选", "为什么不能选遏制"],
+    where: "诊断 ActionChip 在主列。栏只对话。",
+  },
+  {
+    id: "guided",
+    label: "Guided",
+    defaultPlace: "rail",
+    hello: "从对话开始",
+    sessionTitle: "这篇材料",
+    locator: "这篇材料",
+    placeholder: "问这篇材料…",
+    presets: ["标关键句", "对照要点", "整理成段"],
+    where: "材料 | 方向 | 对话。预选项只在对话轨。",
+  },
+  {
+    id: "review-path-a",
+    label: "Path A",
+    defaultPlace: "rail",
+    hello: "讲这题",
+    sessionTitle: "资料题同比",
+    locator: "资料题同比 · 解析",
+    placeholder: "问这题…",
+    presets: ["讲这题", "标关键条件", "找同类错题"],
+    where: "桌面 Modal + 同一 dock。390 只留桌面门。",
   },
 ];
 

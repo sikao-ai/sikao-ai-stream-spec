@@ -58,7 +58,8 @@ import {
   WORD_SUPERSESSION,
   WORD_VERSION,
 } from "@/lib/spec-matrix";
-import { PROMPT_BAR, SHELL_PLACES, SOURCE_SLOT_LAYOUT } from "@/contract/shell";
+import { PROMPT_BAR, SHELL_PACK, SHELL_PLACES, SHELL_SCENES, SOURCE_SLOT_LAYOUT, type DockPlace } from "@/contract/shell";
+import { DockFrame, type ShellSceneId, type ShellSurface } from "@/renderer/DockFrame";
 import { HOST_FIVE, PATH_A } from "@/contract/scenes";
 import { BELOW_ANSWER, WIDGET_FOLD } from "@/contract/turn";
 
@@ -1501,71 +1502,93 @@ function DockPage() {
   const dockOpen = useAppStore((s) => s.dockOpen);
   const place = useAppStore((s) => s.dockPlace);
   const setPlace = useAppStore((s) => s.setDockPlace);
+  const [host, setHost] = useState<ShellSceneId>("overview");
+  const [surface, setSurface] = useState<ShellSurface>("welcome");
+  const meta = SHELL_SCENES.find((s) => s.id === host);
 
   return (
-    <div className="spec-page">
+    <div className="spec-page spec-bui-page">
       <header className="spec-hero">
-        <span className="spec-kicker">SIK-1072 · 浮层 / 右栏 / Web 移动 sheet</span>
-        <h1 className="spec-h1">栏不另开，入口不靠 FAB</h1>
+        <span className="spec-kicker">SIK-1072 · 壳整包</span>
+        <h1 className="spec-h1">点开、欢迎、预选项、三壳、各场景</h1>
         <p className="spec-lede">
-          Canonical 壳只画布局。不发模型、不写 localStorage 会话、不假听写。直连 xAI 在 /labs/live-model-demo，标 demo-only。
+          Canonical 只画布局。不发模型、不写 localStorage、不假听写。细标本在总览 21–26。这里按壳位 × 场景对读。
         </p>
-        <div className="spec-seg spec-seg-quiet" role="tablist" aria-label="壳">
-          {SHELL_PLACES.map((row) => (
-            <button
-              key={row.id}
-              type="button"
-              role="tab"
-              aria-selected={place === row.id}
-              data-active={place === row.id}
-              onClick={() => {
-                setPlace(row.id);
-                setOpen(true);
-              }}
-            >
-              {row.label}
-            </button>
-          ))}
-        </div>
       </header>
 
       <div className="spec-table-wrap" tabIndex={0}>
         <table className="spec-table">
           <thead>
             <tr>
-              <th>壳</th>
-              <th>何时</th>
-              <th>几何</th>
-              <th>不要</th>
+              <th>#</th>
+              <th>块</th>
+              <th>票</th>
+              <th>必须做到</th>
             </tr>
           </thead>
           <tbody>
-            {SHELL_PLACES.map((row) => (
+            {SHELL_PACK.map((row) => (
               <tr key={row.id}>
+                <td>{row.n}</td>
                 <td>
-                  <strong>{row.label}</strong>
+                  <strong>{row.name}</strong>
                 </td>
-                <td>{row.when}</td>
-                <td>{row.geometry}</td>
-                <td>{row.note}</td>
+                <td>{row.ticket}</td>
+                <td>{row.must}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      <DockPromptBar />
+      <div className="spec-seg spec-seg-quiet spec-h3-gap" role="tablist" aria-label="壳位">
+        {SHELL_PLACES.map((row) => (
+          <button
+            key={row.id}
+            type="button"
+            role="tab"
+            aria-selected={place === row.id}
+            data-active={place === row.id}
+            onClick={() => setPlace(row.id)}
+          >
+            {row.label}
+          </button>
+        ))}
+      </div>
+      <div className="spec-bui-host-tabs" role="tablist" aria-label="场景">
+        {SHELL_SCENES.map((s) => (
+          <button key={s.id} type="button" data-active={host === s.id} onClick={() => setHost(s.id)}>
+            {s.label}
+          </button>
+        ))}
+      </div>
+      <div className="spec-bui-host-tabs" role="tablist" aria-label="面">
+        {(["welcome", "thread", "mgr", "gate"] as const).map((id) => (
+          <button key={id} type="button" data-active={surface === id} onClick={() => setSurface(id)}>
+            {{ welcome: "欢迎", thread: "下一问", mgr: "会话", gate: "390 门" }[id]}
+          </button>
+        ))}
+      </div>
+      <p className="spec-meta">
+        {meta?.hello} · {meta?.placeholder} · {SHELL_PLACES.find((p) => p.id === place)?.geometry}
+      </p>
+      <DockFrame
+        place={surface === "gate" ? "ios" : place}
+        scene={host}
+        surface={surface}
+        interactive
+      />
 
-      <div className="spec-preview-frame">
+      <div className="spec-preview-frame spec-h3-gap">
         <div className="spec-preview-head">
           <span className="spec-chip" data-tone="ai">
             {place}
           </span>
-          <span className="spec-preview-title">壳标本</span>
+          <span className="spec-preview-title">真壳开合</span>
           <SceneAiChip size={32} expanded={dockOpen} onClick={() => setOpen(!dockOpen)} />
         </div>
         <div className="spec-preview-body">
-          <p className="spec-meta">{SHELL_PLACES.find((p) => p.id === place)?.when}</p>
+          <p className="spec-meta">点标打开右下浮层 / 右栏 / sheet。标题可点出会话管理器。</p>
         </div>
       </div>
     </div>
@@ -1716,7 +1739,7 @@ function CanonicalDock() {
       open={open}
       onClose={() => setOpen(false)}
       onPlace={setPlace}
-      composer={<PromptBarSpecimen />}
+      composer={<PromptBarSpecimen layout="locator" locator="总览" />}
     >
       <ScenarioPlayer compact initialId="tool" />
     </DockShell>
