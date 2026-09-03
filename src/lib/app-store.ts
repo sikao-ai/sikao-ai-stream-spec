@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import type { DockHost } from "./ask-sikao";
+import type { DockHostId, DockPlace as ShellDockPlace } from "@/contract/shell";
+import type { DensityId } from "@/contract/turn";
 
 export type SectionId =
   | "overview"
@@ -13,10 +14,10 @@ export type SectionId =
   | "playground"
   | "dock";
 
-export type DockPlace = "float" | "rail" | "ios";
+export type DockPlace = ShellDockPlace;
 export type ThemeMode = "light" | "dark";
-
-export type DensityId = "short" | "tool" | "teach" | "gate";
+export type { DensityId };
+export type DockHost = DockHostId;
 
 interface AppState {
   section: SectionId;

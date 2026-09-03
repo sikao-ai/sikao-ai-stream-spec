@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   Compass,
   Layers,
@@ -42,7 +42,6 @@ import {
   NAV_GROUPS,
   RENDERER_TERMS,
   RULES,
-  SAP_SOURCES,
   SECTIONS,
   STEALS,
   TOKENS,
@@ -66,18 +65,26 @@ import {
   WORD_SUPERSESSION,
   WORD_VERSION,
 } from "@/lib/spec-matrix";
-import { AiDock } from "@/components/ai-dock";
-import { DOCK_HOSTS } from "@/lib/dock-catalog";
-import type { DockHost } from "@/lib/ask-sikao";
+import { SHELL_PLACES } from "@/contract/shell";
+import { HOST_FIVE, PATH_A } from "@/contract/scenes";
+import { BELOW_ANSWER, WIDGET_FOLD } from "@/contract/turn";
+import { MANIFEST } from "@/contract/manifest";
+import { EXPERTS, FOLLOWUPS, SAP_SOURCES, TOOL_PROSE_SETTLED } from "@/player/fixtures/content";
+import { ScenarioPlayer } from "@/player/ScenarioPlayer";
+import { DensityStream } from "@/renderer/TurnRenderer";
+import { PromptBarSpecimen } from "@/renderer/PromptBarSpecimen";
+import { SourceStateTable } from "@/renderer/ContextCardSpecimen";
+import { DockShell } from "@/renderer/DockShell";
+import { GuidedThreeTrack, ReviewPathADesktop, ReviewPathAMobileGate } from "@/renderer/HostSpecimen";
+import { TurnRenderer } from "@/renderer/TurnRenderer";
+import { getFrame, getScenario } from "@/player/fixtures";
 import {
   ActionChip,
   AiMark,
   AnswerFootprint,
   AssistantProse,
   BanLoader,
-  ComposerBar,
   ContextCard,
-  DensityStream,
   EntityChip,
   ErrorBand,
   KindTag,
@@ -235,14 +242,14 @@ function Overview() {
         <span className="spec-kicker">sikao-ai / sikao · SIK-741</span>
         <h1 className="spec-h1">四密五族，不再发明皮肤</h1>
         <p className="spec-lede">
-          左侧：回合渲染器看怎么画一整轮；组件看零件；规则看红线/色板/矩阵。骨架：{AGENT_STREAM.order}
+          这是契约实验室，不是半个产品：同一输入状态应画成什么。模型、用户数据、后端状态在主仓。Turn {MANIFEST.turnContractVersion} · Shell {MANIFEST.shellContractVersion} · sikao origin/main {MANIFEST.sikaoOriginMainSha.slice(0, 8)}。骨架：{AGENT_STREAM.order}
         </p>
       </header>
 
       <section>
         <h2 className="spec-h2">回合渲染器词表</h2>
         <p className="spec-meta">对齐 Claude content block（thinking / tool_use / text）与 Grok 多步骤折叠。产品 CONTEXT.md 同锁。</p>
-        <div className="spec-table-wrap">
+        <div className="spec-table-wrap" tabIndex={0}>
           <table className="spec-table">
             <thead>
               <tr>
@@ -276,7 +283,7 @@ function Overview() {
           先从 beautifului.dev 偷几何和交互，再按四密裁。land=spec 只在原型；partial 产品有半套；gap
           产品还不能抄。
         </p>
-        <div className="spec-table-wrap">
+        <div className="spec-table-wrap" tabIndex={0}>
           <table className="spec-table">
             <thead>
               <tr>
@@ -311,7 +318,7 @@ function Overview() {
       <section>
         <h2 className="spec-h2">SSE → 内容块</h2>
         <p className="spec-meta">产品 decodeConsultStreamItem 必须按此投影，禁止另造机。</p>
-        <div className="spec-table-wrap">
+        <div className="spec-table-wrap" tabIndex={0}>
           <table className="spec-table">
             <thead>
               <tr>
@@ -340,7 +347,7 @@ function Overview() {
         <p className="spec-meta">
           执行只抄「原型」列。产品列是现状，不是第二套设计。缺任一项不得把 1068 当完整回合渲染器 Done。
         </p>
-        <div className="spec-table-wrap">
+        <div className="spec-table-wrap" tabIndex={0}>
           <table className="spec-table">
             <thead>
               <tr>
@@ -365,7 +372,7 @@ function Overview() {
           </table>
         </div>
         <h3 className="spec-h3 spec-h3-gap">脚印动作</h3>
-        <div className="spec-table-wrap">
+        <div className="spec-table-wrap" tabIndex={0}>
           <table className="spec-table">
             <thead>
               <tr>
@@ -431,7 +438,7 @@ function Overview() {
 
       <section>
         <h2 className="spec-h2">五族控件 · 不要第六族</h2>
-        <div className="spec-table-wrap">
+        <div className="spec-table-wrap" tabIndex={0}>
           <table className="spec-table">
             <thead>
               <tr>
@@ -524,12 +531,11 @@ function DensityPage() {
           density={density}
           phase={density === "short" && phase === "live" ? "waiting" : phase}
           onGateResolved={() => {
-            setPhase("streaming");
-            window.setTimeout(() => setPhase("settled"), 1400);
+            setPhase("settled");
           }}
         />
       </Frame>
-      <div className="spec-table-wrap">
+      <div className="spec-table-wrap" tabIndex={0}>
         <table className="spec-table">
           <thead>
             <tr>
@@ -588,7 +594,7 @@ function DensityPage() {
             <FilterTable />
           </Frame>
         </div>
-        <div className="spec-table-wrap spec-h3-gap">
+        <div className="spec-table-wrap spec-h3-gap" tabIndex={0}>
           <table className="spec-table">
             <thead>
               <tr>
@@ -629,7 +635,7 @@ function FamiliesPage() {
         </p>
       </header>
 
-      <div className="spec-table-wrap">
+      <div className="spec-table-wrap" tabIndex={0}>
         <table className="spec-table">
           <thead>
             <tr>
@@ -719,7 +725,7 @@ function FamiliesPage() {
             state="tool"
             copy="正在检索"
             time="4s"
-            rail={<LiveExpertPlayback />}
+            rail={<LiveExpertPlayback experts={EXPERTS} />}
           />
         </div>
         <p className="spec-meta spec-h3-gap">{AGENT_STREAM.settled}</p>
@@ -825,19 +831,26 @@ function SourcesPage() {
   return (
     <div className="spec-page">
       <header className="spec-hero">
-        <span className="spec-kicker">Claude 对话 · Perplexity 结果页</span>
-        <h1 className="spec-h1">来源有两套表面，不能混</h1>
+        <span className="spec-kicker">已验证状态与布局 · 不是已接通</span>
+        <h1 className="spec-h1">来源只画已验证的状态</h1>
         <p className="spec-lede">
-          对话学 Claude：正文带 [n]，点角标在旁边浮出那一张 chunk，方法 / 你来仍贴在答案下、位置不动。结果页才先铺本轮工具 /
-          笔记卡再读合成——那是检索落地，不是气泡。
+          原型只证明「这一态该长什么样」。来源真正能否进入模型上下文，由主仓 DTO/ACL 决定。这里没有彩色接通芯片，也没有假检索。
         </p>
       </header>
+      <div className="spec-card">
+        <h3 className="spec-h3">已验证状态</h3>
+        <SourceStateTable />
+      </div>
       <div className="spec-split">
         <Frame title="对话流 · 点角标浮出那一张" kicker="Claude">
           <DensityStream density="teach" phase="settled" />
         </Frame>
         <Frame title="结果页 · Perplexity 扫描" kicker="不是气泡">
-          <PplxResult related={["为什么不能选遏制", "对比近义"]} />
+          <PplxResult
+            sources={SAP_SOURCES}
+            paragraphs={[...TOOL_PROSE_SETTLED, { segments: [{ text: "记忆钩子：遏制势头 · 抑制萌芽。" }, { cite: 3 }, { text: "。" }] }]}
+            related={[...FOLLOWUPS]}
+          />
         </Frame>
       </div>
       <Frame title="脚印上来源图标 · 整轮之后展开列表" kicker="after footer">
@@ -970,7 +983,7 @@ function TokensPage() {
             </div>
           ))}
         </div>
-        <div className="spec-table-wrap spec-h3-gap">
+        <div className="spec-table-wrap spec-h3-gap" tabIndex={0}>
           <table className="spec-table">
             <thead>
               <tr>
@@ -993,7 +1006,7 @@ function TokensPage() {
           </table>
         </div>
         <h3 className="spec-h3 spec-h3-gap">三壳布局</h3>
-        <div className="spec-table-wrap">
+        <div className="spec-table-wrap" tabIndex={0}>
           <table className="spec-table">
             <thead>
               <tr>
@@ -1017,7 +1030,7 @@ function TokensPage() {
         </div>
         <h3 className="spec-h3 spec-h3-gap">双轴对齐</h3>
         <p className="spec-meta">X 管左缘/右缘，Y 管行中心。Dots、lucide、首芯片共用 --turn-icon 16px 列。</p>
-        <div className="spec-table-wrap">
+        <div className="spec-table-wrap" tabIndex={0}>
           <table className="spec-table">
             <thead>
               <tr>
@@ -1038,7 +1051,7 @@ function TokensPage() {
           </table>
         </div>
         <h3 className="spec-h3 spec-h3-gap">回合文案锁（1066.v4）</h3>
-        <div className="spec-table-wrap">
+        <div className="spec-table-wrap" tabIndex={0}>
           <table className="spec-table">
             <thead>
               <tr>
@@ -1075,7 +1088,7 @@ function TokensPage() {
       <div className="spec-card">
         <h2 className="spec-h3">Dots ← 1040 状态机</h2>
         <p className="spec-meta">不新造 run 机。点阵常驻回合行，色相投影 attachment + terminal。条仍是 DurableRunStatusBar，不加第二套点阵。</p>
-        <div className="spec-table-wrap spec-h3-gap">
+        <div className="spec-table-wrap spec-h3-gap" tabIndex={0}>
           <table className="spec-table">
             <thead>
               <tr>
@@ -1158,124 +1171,14 @@ function TokensPage() {
 }
 
 function Playground() {
-  const density = useAppStore((s) => s.density);
-  const setDensity = useAppStore((s) => s.setDensity);
-  const [input, setInput] = useState("这道题的干扰项是怎么设计的？");
-  const [log, setLog] = useState<
-    ReadonlyArray<{ role: "user" | "ai"; text: string; density: DensityId }>
-  >([]);
-  const [busy, setBusy] = useState(false);
-  const [phase, setPhase] = useState<import("./stream/primitives").StreamPhase | "idle">("idle");
-  const timers = useRef<number[]>([]);
-
-  function clearTimers() {
-    timers.current.forEach((id) => window.clearTimeout(id));
-    timers.current = [];
-  }
-
-  function later(fn: () => void, ms: number) {
-    const id = window.setTimeout(fn, ms);
-    timers.current.push(id);
-  }
-
-  function send(text: string) {
-    const trimmed = text.trim();
-    if (!trimmed || busy) return;
-    clearTimers();
-    setInput("");
-    setBusy(true);
-    setPhase("waiting");
-    setLog((prev) => [...prev, { role: "user", text: trimmed, density }]);
-    const gated = density === "gate";
-    const steps =
-      density === "short"
-        ? ([
-            ["waiting", 700],
-            ["streaming", 1400],
-            ["settled", 0],
-          ] as const)
-        : gated
-          ? ([
-              ["waiting", 700],
-              ["live", -1],
-            ] as const)
-          : ([
-              ["waiting", 700],
-              ["live", 3600],
-              ["streaming", 1500],
-              ["settled", 0],
-            ] as const);
-    const run = (index: number) => {
-      const step = steps[index];
-      if (!step) {
-        setBusy(false);
-        return;
-      }
-      const [next, ms] = step;
-      setPhase(next);
-      if (next === "streaming") {
-        setLog((prev) => [
-          ...prev,
-          {
-            role: "ai",
-            density,
-            text:
-              density === "short"
-                ? "干扰项拿一个「对、但搭配不对」的近义来抢注意力。"
-                : "先看宾语，再看语气硬度。对、但搭配不对的近义最容易下手。",
-          },
-        ]);
-      }
-      if (next === "settled") {
-        setBusy(false);
-        return;
-      }
-      if (ms < 0) return;
-      later(() => run(index + 1), ms);
-    };
-    run(0);
-  }
-
-  function stopTurn() {
-    if (!busy) return;
-    clearTimers();
-    setPhase("stop");
-    setBusy(false);
-  }
-
-  function resumeGate() {
-    setPhase("streaming");
-    setLog((prev) => [
-      ...prev,
-      {
-        role: "ai",
-        density: "gate",
-        text: "先看宾语，再看语气硬度。对、但搭配不对的近义最容易下手。",
-      },
-    ]);
-    later(() => {
-      setPhase("settled");
-      setBusy(false);
-    }, 1400);
-  }
-
-  useEffect(() => {
-    return () => {
-      timers.current.forEach((id) => window.clearTimeout(id));
-    };
-  }, []);
-
-  const lastAi = [...log].reverse().find((m) => m.role === "ai");
-
   return (
     <div className="spec-page">
       <header className="spec-hero">
-        <span className="spec-kicker">turn renderer</span>
+        <span className="spec-kicker">turn renderer · fixture player</span>
         <h1 className="spec-h1">回合渲染器</h1>
         <p className="spec-lede">
-          {AGENT_STREAM.order} 工作时用专家栈 lucide 条；正文结束后同一状态行折叠出多步骤。门卡流活时停住等审批，点完才出正文；落定推荐卡不挡下一问。
+          逐帧播放夹具，不跑模型。验证同一 Turn 在 live / persisted / replay 槽位顺序一致。{AGENT_STREAM.order}
         </p>
-        <DensityPicker value={density} onChange={setDensity} />
       </header>
 
       <section>
@@ -1283,7 +1186,7 @@ function Playground() {
         <p className="spec-meta">
           产品一行换一行。ticket=SIK-1070/1072 的槽只留位，1068 不画皮。下方 DensityStream 已打这些 slot。
         </p>
-        <div className="spec-table-wrap">
+        <div className="spec-table-wrap" tabIndex={0}>
           <table className="spec-table">
             <thead>
               <tr>
@@ -1308,7 +1211,7 @@ function Playground() {
           </table>
         </div>
         <h3 className="spec-h3 spec-h3-gap">时序对照</h3>
-        <div className="spec-table-wrap">
+        <div className="spec-table-wrap" tabIndex={0}>
           <table className="spec-table">
             <thead>
               <tr>
@@ -1337,7 +1240,7 @@ function Playground() {
           </table>
         </div>
         <h3 className="spec-h3 spec-h3-gap">宿主只挂这一棵</h3>
-        <div className="spec-table-wrap">
+        <div className="spec-table-wrap" tabIndex={0}>
           <table className="spec-table">
             <thead>
               <tr>
@@ -1364,7 +1267,7 @@ function Playground() {
           <TurnStatusLine state="wait" copy="正在想" />
         </Frame>
         <Frame title="工作时 · 专家栈" kicker="live">
-          <TurnStatusLine state="tool" copy="正在检索" time="4s" rail={<LiveExpertPlayback />} />
+          <TurnStatusLine state="tool" copy="正在检索" time="4s" rail={<LiveExpertPlayback experts={EXPERTS} />} />
         </Frame>
         <Frame title="出字" kicker="streaming">
           <TurnStatusLine state="stream" copy="" status="stream" />
@@ -1409,37 +1312,16 @@ function Playground() {
       <div className="spec-preview-frame">
         <div className="spec-preview-head">
           <LayoutGrid size={14} />
-          <span className="spec-preview-title">{DENSITIES.find((d) => d.id === density)?.title}</span>
+          <span className="spec-preview-title">ScenarioPlayer</span>
           <span className="spec-chip" data-tone="ai" data-push="end">
-            {phase === "idle" ? "静息" : phase}
+            fixtures
           </span>
         </div>
         <div className="spec-preview-body spec-play-body">
-          {log.length === 0 ? (
-            <div className="spec-empty">
-              <p className="spec-lede spec-lede-sm">问一句，看当前密度怎么呼吸。</p>
-              <PromptList
-                items={["为什么错", "对比近义", "做成计划"]}
-                onPick={(item) => send(item)}
-              />
-            </div>
-          ) : (
-            <DensityStream
-              density={lastAi?.density ?? density}
-              phase={phase === "idle" ? "settled" : phase}
-              question={log.filter((m) => m.role === "user").at(-1)?.text}
-              onGateResolved={resumeGate}
-            />
-          )}
+          <ScenarioPlayer />
         </div>
         <div data-turn-slot="composer" data-ticket="SIK-1072">
-          <ComposerBar
-            value={input}
-            onChange={setInput}
-            onSend={() => send(input)}
-            onStop={stopTurn}
-            busy={busy}
-          />
+          <PromptBarSpecimen />
         </div>
       </div>
       <div className="spec-note">
@@ -1450,11 +1332,81 @@ function Playground() {
         <p>{AGENT_STREAM.error}</p>
         <p>{AGENT_STREAM.footprint}</p>
       </div>
+      <section>
+        <h2 className="spec-h2">宿主五条</h2>
+        <p className="spec-meta">
+          主仓已核对、原型原先漏了的宿主。Path A 对齐 SIK-1050。方法卡 / 到你了默认折叠。{WIDGET_FOLD.reason}
+        </p>
+        <div className="spec-table-wrap spec-h3-gap" tabIndex={0}>
+          <table className="spec-table">
+            <thead>
+              <tr>
+                <th>宿主</th>
+                <th>锁</th>
+              </tr>
+            </thead>
+            <tbody>
+              {HOST_FIVE.map((row) => (
+                <tr key={row.id}>
+                  <td>
+                    <strong>{row.host}</strong>
+                  </td>
+                  <td>{row.lock}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <h3 className="spec-h3 spec-h3-gap">脚印前后出现机制</h3>
+        <p className="spec-meta">脚印下方只允许来源列表。方法 / 到你了 / PromptList 一律在脚印之前，且方法与到你了默认折叠。</p>
+        <div className="spec-table-wrap" tabIndex={0}>
+          <table className="spec-table">
+            <thead>
+              <tr>
+                <th>块</th>
+                <th>位置</th>
+                <th>何时出现</th>
+              </tr>
+            </thead>
+            <tbody>
+              {BELOW_ANSWER.map((row) => (
+                <tr key={row.id}>
+                  <td>
+                    <code>{row.id}</code>
+                  </td>
+                  <td>{row.where}</td>
+                  <td>{row.appear}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <Frame title="复盘教师 Path A · 桌面" kicker="SIK-1050">
+        <p className="spec-meta">{PATH_A.dock}</p>
+        <ReviewPathADesktop />
+      </Frame>
+      <Frame title="复盘教师 Path A · 390" kicker="桌面门">
+        <ReviewPathAMobileGate />
+      </Frame>
+      <Frame title="Guided 申论 · 三栏" kicker="只有对话是 Turn">
+        <GuidedThreeTrack />
+      </Frame>
+      <div className="spec-split">
+        <Frame title="Tutor" kicker="诊断 + 折叠卡 + 脚印">
+          <TurnRenderer frame={getFrame(getScenario("tutor"), "settled")} view="persisted" />
+        </Frame>
+        <Frame title="问诊错因 幕1" kicker="专家栈 · 无正文">
+          <TurnRenderer frame={getFrame(getScenario("cause-act1"), "live")} view="live" />
+        </Frame>
+      </div>
+      <Frame title="题型教具" kicker="表在 stem">
+        <TurnRenderer frame={getFrame(getScenario("teach-aid"), "settled")} view="persisted" />
+      </Frame>
+
       <Frame title="结果页 · Perplexity 扫描" kicker="不是对话气泡">
-        <PplxResult
-          related={["为什么不能选遏制", "对比近义", "做成今日计划"]}
-          onPick={(item) => send(item)}
-        />
+        <PplxResult sources={SAP_SOURCES} paragraphs={TOOL_PROSE_SETTLED} related={[...FOLLOWUPS]} />
       </Frame>
       <div className="spec-note">
         <p>
@@ -1480,7 +1432,7 @@ function MatrixPage() {
 
       <div className="spec-card">
         <h3 className="spec-h3">波次</h3>
-        <div className="spec-table-wrap">
+        <div className="spec-table-wrap" tabIndex={0}>
           <table className="spec-table">
             <thead>
               <tr>
@@ -1509,7 +1461,7 @@ function MatrixPage() {
       <div className="spec-card">
         <h3 className="spec-h3">覆盖关系</h3>
         <p className="spec-meta">前五项由新原型覆盖，实现者不得自行保留旧皮肤。</p>
-        <div className="spec-table-wrap">
+        <div className="spec-table-wrap" tabIndex={0}>
           <table className="spec-table">
             <thead>
               <tr>
@@ -1537,7 +1489,7 @@ function MatrixPage() {
 
       <div className="spec-card">
         <h3 className="spec-h3">场景 → 密度 → 族</h3>
-        <div className="spec-table-wrap">
+        <div className="spec-table-wrap" tabIndex={0}>
           <table className="spec-table">
             <thead>
               <tr>
@@ -1574,7 +1526,7 @@ function MatrixPage() {
         <p className="spec-meta">
           产品：{SHAPE_TABS.product} 原型：{SHAPE_TABS.proto} {SHAPE_TABS.rail} {SHAPE_TABS.pill}
         </p>
-        <div className="spec-table-wrap">
+        <div className="spec-table-wrap" tabIndex={0}>
           <table className="spec-table">
             <thead>
               <tr>
@@ -1607,7 +1559,7 @@ function MatrixPage() {
       <div className="spec-card">
         <h3 className="spec-h3">运行时状态</h3>
         <p className="spec-meta">对话走 1031/1040/1032。长任务走 1037 ProgressAtom，本规范不重画。</p>
-        <div className="spec-table-wrap">
+        <div className="spec-table-wrap" tabIndex={0}>
           <table className="spec-table">
             <thead>
               <tr>
@@ -1642,7 +1594,7 @@ function MatrixPage() {
       <div className="spec-grid">
         <div className="spec-card">
           <h3 className="spec-h3">审批卡状态</h3>
-          <div className="spec-table-wrap">
+          <div className="spec-table-wrap" tabIndex={0}>
             <table className="spec-table">
               <thead>
                 <tr>
@@ -1669,7 +1621,7 @@ function MatrixPage() {
         </div>
         <div className="spec-card">
           <h3 className="spec-h3">推荐卡状态</h3>
-          <div className="spec-table-wrap">
+          <div className="spec-table-wrap" tabIndex={0}>
             <table className="spec-table">
               <thead>
                 <tr>
@@ -1736,7 +1688,7 @@ function MatrixPage() {
 
       <div className="spec-card">
         <h3 className="spec-h3">来源</h3>
-        <div className="spec-table-wrap">
+        <div className="spec-table-wrap" tabIndex={0}>
           <table className="spec-table">
             <thead>
               <tr>
@@ -1795,7 +1747,7 @@ function MatrixPage() {
       <div className="spec-card">
         <h3 className="spec-h3">词表继承 / 覆盖（SIK-1066）</h3>
         <p className="spec-meta">词表不带视觉。实现对照本表改字，不对照记忆。</p>
-        <div className="spec-table-wrap">
+        <div className="spec-table-wrap" tabIndex={0}>
           <table className="spec-table">
             <thead>
               <tr>
@@ -1815,7 +1767,7 @@ function MatrixPage() {
             </tbody>
           </table>
         </div>
-        <div className="spec-table-wrap">
+        <div className="spec-table-wrap" tabIndex={0}>
           <table className="spec-table">
             <thead>
               <tr>
@@ -1843,75 +1795,85 @@ function MatrixPage() {
 }
 
 function DockPage() {
-  const host = useAppStore((s) => s.dockHost);
-  const setHost = useAppStore((s) => s.setDockHost);
   const setOpen = useAppStore((s) => s.setDockOpen);
   const dockOpen = useAppStore((s) => s.dockOpen);
   const place = useAppStore((s) => s.dockPlace);
   const setPlace = useAppStore((s) => s.setDockPlace);
-  const current = DOCK_HOSTS[host];
 
   return (
     <div className="spec-page">
       <header className="spec-hero">
-        <span className="spec-kicker">SIK-1072 · 浮层 / 右栏 / iOS</span>
+        <span className="spec-kicker">SIK-1072 · 浮层 / 右栏 / Web 移动 sheet</span>
         <h1 className="spec-h1">栏不另开，入口不靠 FAB</h1>
         <p className="spec-lede">
-          入口是 Rail ⌘J / SceneAiChip。会话管理器占满面板，列表可滚，标题和时间各占一列。浮层默认；复盘钉右栏；窄屏
-          iOS sheet。
+          Canonical 壳只画布局。不发模型、不写 localStorage 会话、不假听写。直连 xAI 在 /labs/live-model-demo，标 demo-only。
         </p>
-        <div className="spec-seg" role="tablist" aria-label="宿主">
-          {(Object.keys(DOCK_HOSTS) as DockHost[]).map((id) => (
-            <button
-              key={id}
-              type="button"
-              role="tab"
-              aria-selected={id === host}
-              data-active={id === host}
-              onClick={() => {
-                setHost(id);
-                setOpen(true);
-              }}
-            >
-              {DOCK_HOSTS[id].label}
-            </button>
-          ))}
-        </div>
         <div className="spec-seg spec-seg-quiet" role="tablist" aria-label="壳">
-          {(
-            [
-              ["float", "浮层"],
-              ["rail", "右栏"],
-              ["ios", "iOS"],
-            ] as const
-          ).map(([id, label]) => (
+          {SHELL_PLACES.map((row) => (
             <button
-              key={id}
+              key={row.id}
               type="button"
               role="tab"
-              aria-selected={id === place}
-              data-active={id === place}
+              aria-selected={place === row.id}
+              data-active={place === row.id}
               onClick={() => {
-                setPlace(id);
+                setPlace(row.id);
                 setOpen(true);
               }}
             >
-              {label}
+              {row.label}
             </button>
           ))}
         </div>
       </header>
 
+      <div className="spec-table-wrap" tabIndex={0}>
+        <table className="spec-table">
+          <thead>
+            <tr>
+              <th>壳</th>
+              <th>何时</th>
+              <th>几何</th>
+              <th>不要</th>
+            </tr>
+          </thead>
+          <tbody>
+            {SHELL_PLACES.map((row) => (
+              <tr key={row.id}>
+                <td>
+                  <strong>{row.label}</strong>
+                </td>
+                <td>{row.when}</td>
+                <td>{row.geometry}</td>
+                <td>{row.note}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <Frame title="Prompt Bar 布局标本" kicker="不发送">
+        <PromptBarSpecimen layout="pinned" />
+      </Frame>
+      <div className="spec-split">
+        <Frame title="来源槽 · 空" kicker="empty">
+          <PromptBarSpecimen layout="empty" />
+        </Frame>
+        <Frame title="来源槽 · 失效" kicker="invalid">
+          <PromptBarSpecimen layout="invalid" />
+        </Frame>
+      </div>
+
       <div className="spec-preview-frame">
         <div className="spec-preview-head">
           <span className="spec-chip" data-tone="ai">
-            {current.kicker}
+            {place}
           </span>
-          <span className="spec-preview-title">{current.title}</span>
+          <span className="spec-preview-title">壳标本</span>
           <SceneAiChip size={32} expanded={dockOpen} onClick={() => setOpen(!dockOpen)} />
         </div>
         <div className="spec-preview-body">
-          <p className="spec-meta">{current.body}</p>
+          <p className="spec-meta">{SHELL_PLACES.find((p) => p.id === place)?.when}</p>
         </div>
       </div>
     </div>
@@ -2011,6 +1973,9 @@ export function SpecApp() {
             {theme === "dark" ? "浅色" : "深色"}
           </button>
           <p className="spec-meta">回合渲染器 · 组件 · 规则</p>
+          <a className="spec-meta spec-labs-link" href="/labs/live-model-demo">
+            demo-only 实验室
+          </a>
         </div>
       </aside>
       <header className="spec-topbar">
@@ -2042,7 +2007,26 @@ export function SpecApp() {
           </button>
         ))}
       </nav>
-      <AiDock />
+      <CanonicalDock />
     </div>
+  );
+}
+
+function CanonicalDock() {
+  const open = useAppStore((s) => s.dockOpen);
+  const setOpen = useAppStore((s) => s.setDockOpen);
+  const place = useAppStore((s) => s.dockPlace);
+  const setPlace = useAppStore((s) => s.setDockPlace);
+  return (
+    <DockShell
+      place={place}
+      title="夹具回合"
+      open={open}
+      onClose={() => setOpen(false)}
+      onPlace={setPlace}
+      composer={<PromptBarSpecimen />}
+    >
+      <ScenarioPlayer compact initialId="tool" />
+    </DockShell>
   );
 }

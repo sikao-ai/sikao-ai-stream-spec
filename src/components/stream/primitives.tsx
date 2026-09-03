@@ -31,8 +31,10 @@ import {
   Wrench,
   X,
 } from "lucide-react";
-import { useAppStore, type DensityId } from "@/lib/app-store";
-import { EXPERTS, FILTER_ROWS, INSIGHTS, LOOKBACK_KICKER, LOOKBACK_SOURCE, SAP_SOURCES } from "@/lib/spec-catalog";
+import { useAppStore } from "@/lib/app-store";
+import type { ProseParagraph } from "@/contract/turn";
+import { FILTER_ROWS, INSIGHTS, LOOKBACK_SOURCE, REC_CHOICES as FIXTURE_REC, APPROVE_OPTIONS as FIXTURE_APPROVE } from "@/player/fixtures/content";
+import type { FilterRow, InsightSpec, RecChoice, SourceCard as FixtureSource } from "@/player/fixtures/types";
 
 export type TurnKind = "user" | "process" | "answer" | "effect" | "error";
 export type KindTagKind = "action" | "suggest" | "input" | "data";
@@ -58,13 +60,7 @@ export type Expert = {
   readonly text: string;
 };
 
-export type SourceCard = {
-  readonly n: number;
-  readonly title: string;
-  readonly kind: string;
-  readonly snippet: string;
-  readonly body: string;
-};
+export type SourceCard = FixtureSource;
 
 export function TurnStream({ children }: { readonly children: ReactNode }) {
   return (
@@ -308,6 +304,7 @@ export function ExpertBubble({
       className="sk-tool-chip"
       data-live={live ? "true" : "false"}
       title={expert.text}
+      role="img"
       aria-label={`${expert.name}：${expert.text}`}
     >
       <span className="sk-tool-chip-icon" aria-hidden="true">
@@ -347,25 +344,8 @@ export function ExpertFeed({
   );
 }
 
-export function LiveExpertPlayback() {
-  const [count, setCount] = useState(1);
-  const prev = useRef(1);
-  const instant = count < prev.current;
-
-  useEffect(() => {
-    prev.current = count;
-  }, [count]);
-
-  useEffect(() => {
-    const id = window.setInterval(() => {
-      setCount((c) => (c >= EXPERTS.length ? 1 : c + 1));
-    }, 1600);
-    return () => window.clearInterval(id);
-  }, []);
-
-  const visible = EXPERTS.slice(0, count);
-  const liveId = visible.at(-1)?.id;
-  return <ExpertFeed experts={visible} liveId={liveId} instant={instant} />;
+export function LiveExpertPlayback({ experts }: { readonly experts: readonly Expert[] }) {
+  return <ExpertFeed experts={experts} liveId={experts.at(-1)?.id} instant />;
 }
 
 export function AssistantProse({
@@ -622,11 +602,11 @@ export function ContextCard({
 }
 
 export function PplxSources({
-  items = SAP_SOURCES,
+  items,
   defaultOpen,
   focus,
 }: {
-  readonly items?: readonly SourceCard[];
+  readonly items: readonly SourceCard[];
   readonly defaultOpen?: number;
   readonly focus?: number;
 }) {
@@ -646,9 +626,13 @@ export function PplxSources({
 }
 
 export function PplxResult({
+  sources,
+  paragraphs,
   related,
   onPick,
 }: {
+  readonly sources: readonly SourceCard[];
+  readonly paragraphs: readonly ProseParagraph[];
   readonly related?: readonly string[];
   readonly onPick?: (item: string) => void;
 }) {
@@ -658,20 +642,22 @@ export function PplxResult({
       <p className="sk-surface-kicker">结果页 · Perplexity 扫描 · 不是对话气泡</p>
       <section className="sk-result-band" aria-label="本轮来源">
         <span className="sk-stem-kicker">本轮工具 / 笔记</span>
-        <PplxSources focus={focus} />
+        <PplxSources items={sources} focus={focus} />
       </section>
       <section className="sk-result-band" aria-label="合成">
         <span className="sk-stem-kicker">合成</span>
         <AssistantProse>
-          <p>
-            「遏制」的对象通常是已经起来的势头，语气偏硬
-            <Cite n={1} active={focus === 1} onOpen={(n) => setFocus(n)} />。空里要的是还没成形的苗头，用「抑制」更贴搭配
-            <Cite n={2} active={focus === 2} onOpen={(n) => setFocus(n)} />。
-          </p>
-          <p>
-            记忆钩子：遏制势头 · 抑制萌芽。本周同类错题已记入计划
-            <Cite n={3} active={focus === 3} onOpen={(n) => setFocus(n)} />。
-          </p>
+          {paragraphs.map((p, i) => (
+            <p key={i}>
+              {p.segments.map((seg, j) =>
+                "cite" in seg ? (
+                  <Cite key={j} n={seg.cite} active={focus === seg.cite} onOpen={(n) => setFocus(n)} />
+                ) : (
+                  <span key={j}>{seg.text}</span>
+                ),
+              )}
+            </p>
+          ))}
         </AssistantProse>
       </section>
       {related && related.length > 0 ? (
@@ -879,27 +865,27 @@ export type ApproveSpecimen =
 
 export type RecSpecimen = "fold" | "open" | "accepting" | "written" | "skipped" | "fail";
 
-const APPROVE_OPTIONS = ["写入今日计划", "只记近义表", "这次先不写"] as const;
-
 export function ProposalCard({
   title,
   reason,
   blocking = false,
   onResolved,
   specimen,
+  options = FIXTURE_APPROVE,
 }: {
   readonly title: string;
   readonly reason: string;
   readonly blocking?: boolean;
   readonly onResolved?: (kind: "ok" | "skip") => void;
   readonly specimen?: ApproveSpecimen;
+  readonly options?: readonly string[];
 }) {
   const questions = [
     {
       q: title,
       hint: reason,
       type: "radio" as const,
-      options: ["写入今日计划", "只记近义表", "这次先不写"],
+      options: [...options],
     },
   ];
   const skipAt = 2;
@@ -1151,7 +1137,7 @@ function ProposalSpecimen({
           </div>
         </div>
         <div className="sk-approve-opts">
-          {APPROVE_OPTIONS.map((option, i) => (
+          {FIXTURE_APPROVE.map((option, i) => (
             <button
               key={option}
               type="button"
@@ -1194,38 +1180,65 @@ function ProposalSpecimen({
   );
 }
 
-export function MethodCard() {
+export function MethodCard({
+  title,
+  reason,
+  folded = true,
+}: {
+  readonly title: string;
+  readonly reason: string;
+  readonly folded?: boolean;
+}) {
+  const [open, setOpen] = useState(!folded);
   return (
-    <div className="sk-method">
-      <div className="sk-gate-head sk-widget-head">
+    <div className="sk-method" data-folded={open ? "false" : "true"}>
+      <button
+        type="button"
+        className="sk-gate-head sk-widget-head"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
         <KindTag kind="suggest" label="方法" />
-        <span className="sk-gate-title">先看宾语，再看语气硬度</span>
-      </div>
-      <p className="sk-gate-reason">「遏制」管已起的势头；空里要的是还没成形的苗头。</p>
+        <span className="sk-gate-title">{title}</span>
+        <span className="sk-widget-chev" aria-hidden="true">
+          {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+        </span>
+      </button>
+      {open ? <p className="sk-gate-reason">{reason}</p> : null}
     </div>
   );
 }
 
-export function YouTryGate() {
+export function YouTryGate({
+  title,
+  items,
+  folded = true,
+}: {
+  readonly title: string;
+  readonly items: readonly string[];
+  readonly folded?: boolean;
+}) {
+  const [open, setOpen] = useState(!folded);
   return (
-    <div className="sk-youtry">
-      <div className="sk-gate-head sk-widget-head">
+    <div className="sk-youtry" data-folded={open ? "false" : "true"}>
+      <button
+        type="button"
+        className="sk-gate-head sk-widget-head"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
         <KindTag kind="input" label="到你了" />
-        <span className="sk-gate-title">下一空自己选</span>
-      </div>
-      <PromptList items={["抑制萌芽", "遏制势头", "遏止蔓延"]} />
+        <span className="sk-gate-title">{title}</span>
+        <span className="sk-widget-chev" aria-hidden="true">
+          {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+        </span>
+      </button>
+      {open ? <PromptList items={items} /> : null}
     </div>
   );
 }
 
-const REC_CHOICES = [
-  { id: "plan", title: "写入今日计划", detail: "对照本周 3 道错题", score: 5 },
-  { id: "drill", title: "先做 2 道旧题", detail: "宾语是萌芽 / 苗头", score: 4 },
-  { id: "table", title: "只记近义表", detail: "先不进计划", score: 3 },
-  { id: "skip", title: "这次先不写", detail: "先看完这题", score: 1 },
-] as const;
-
-type RecId = (typeof REC_CHOICES)[number]["id"];
+type RecId = string;
 
 function RecMeter({
   level,
@@ -1236,7 +1249,7 @@ function RecMeter({
 }) {
   const clamped = Math.min(5, Math.max(1, Math.round(level)));
   return (
-    <span className="sk-rec-meter" data-level={clamped} data-size={size} aria-label={`推荐度 ${clamped}`}>
+    <span className="sk-rec-meter" data-level={clamped} data-size={size} role="img" aria-label={`推荐度 ${clamped}`}>
       {Array.from({ length: 5 }, (_, i) => (
         <i key={i} />
       ))}
@@ -1244,16 +1257,24 @@ function RecMeter({
   );
 }
 
-export function RecommendCard({ specimen }: { readonly specimen?: RecSpecimen } = {}) {
-  const [picked, setPicked] = useState<RecId>("plan");
+export function RecommendCard({
+  specimen,
+  question = "要我把这组近义写进今日计划吗？",
+  choices = FIXTURE_REC,
+}: {
+  readonly specimen?: RecSpecimen;
+  readonly question?: string;
+  readonly choices?: readonly RecChoice[];
+} = {}) {
+  const [picked, setPicked] = useState<RecId>(choices[0]?.id ?? "plan");
   const [open, setOpen] = useState(false);
   const [done, setDone] = useState(false);
-  const current = REC_CHOICES.find((c) => c.id === picked) ?? REC_CHOICES[0];
+  const current = choices.find((c) => c.id === picked) ?? choices[0];
   const skipped = current.id === "skip";
-  const alts = REC_CHOICES.filter((c) => c.id !== "plan");
+  const alts = choices.filter((c) => c.id !== choices[0]?.id);
 
   if (specimen) {
-    return <RecommendSpecimen specimen={specimen} />;
+    return <RecommendSpecimen specimen={specimen} question={question} choices={choices} />;
   }
 
   if (done) {
@@ -1284,7 +1305,7 @@ export function RecommendCard({ specimen }: { readonly specimen?: RecSpecimen } 
     <div className="sk-rec" data-testid="ai-recommend-card">
       <div className="sk-rec-top">
         <KindTag kind="suggest" label="建议" />
-        <span className="sk-rec-q">要我把这组近义写进今日计划吗？</span>
+        <span className="sk-rec-q">{question}</span>
       </div>
       <div className="sk-rec-primary">
         <span className="sk-rec-primary-copy">
@@ -1330,9 +1351,9 @@ export function RecommendCard({ specimen }: { readonly specimen?: RecSpecimen } 
               </button>
             ))}
           </div>
-        <div className="sk-rec-grid-wrap" data-open={open ? "true" : "false"} aria-hidden={!open}>
+        <div className="sk-rec-grid-wrap" data-open={open ? "true" : "false"} hidden={!open} inert={!open}>
           <div className="sk-rec-grid" role="group" aria-label="方案推荐度">
-            {REC_CHOICES.map((item) => (
+            {choices.map((item) => (
               <button
                 key={item.id}
                 type="button"
@@ -1372,7 +1393,15 @@ export function RecommendCard({ specimen }: { readonly specimen?: RecSpecimen } 
   );
 }
 
-function RecommendSpecimen({ specimen }: { readonly specimen: RecSpecimen }) {
+function RecommendSpecimen({
+  specimen,
+  question = "要我把这组近义写进今日计划吗？",
+  choices = FIXTURE_REC,
+}: {
+  readonly specimen: RecSpecimen;
+  readonly question?: string;
+  readonly choices?: readonly RecChoice[];
+}) {
   if (specimen === "written" || specimen === "skipped") {
     return (
       <div className="sk-rec" data-testid="ai-recommend-card" data-specimen={specimen}>
@@ -1391,13 +1420,13 @@ function RecommendSpecimen({ specimen }: { readonly specimen: RecSpecimen }) {
   const open = specimen === "open";
   const accepting = specimen === "accepting";
   const fail = specimen === "fail";
-  const current = REC_CHOICES[0];
-  const alts = REC_CHOICES.filter((c) => c.id !== "plan");
+  const current = choices[0];
+  const alts = choices.filter((c) => c.id !== choices[0]?.id);
   return (
     <div className="sk-rec" data-testid="ai-recommend-card" data-specimen={specimen}>
       <div className="sk-rec-top">
         <KindTag kind="suggest" label="建议" />
-        <span className="sk-rec-q">要我把这组近义写进今日计划吗？</span>
+        <span className="sk-rec-q">{question}</span>
       </div>
       <div className="sk-rec-primary">
         <span className="sk-rec-primary-copy">
@@ -1426,9 +1455,9 @@ function RecommendSpecimen({ specimen }: { readonly specimen: RecSpecimen }) {
             </button>
           ))}
         </div>
-        <div className="sk-rec-grid-wrap" data-open={open ? "true" : "false"} aria-hidden={!open}>
+        <div className="sk-rec-grid-wrap" data-open={open ? "true" : "false"} hidden={!open} inert={!open}>
           <div className="sk-rec-grid" role="group" aria-label="方案推荐度">
-            {REC_CHOICES.map((item) => (
+            {choices.map((item) => (
               <button
                 key={item.id}
                 type="button"
@@ -1470,15 +1499,21 @@ function filterTone(status: string): StatusTagTone {
   return "neutral";
 }
 
-export function FilterTable({ empty = false }: { readonly empty?: boolean } = {}) {
+export function FilterTable({
+  empty = false,
+  rows: allRows = FILTER_ROWS,
+}: {
+  readonly empty?: boolean;
+  readonly rows?: readonly FilterRow[];
+} = {}) {
   const [filter, setFilter] = useState<FilterKey>("all");
   const counts = {
-    all: FILTER_ROWS.length,
-    搭配: FILTER_ROWS.filter((r) => r.cause === "搭配").length,
-    订正中: FILTER_ROWS.filter((r) => r.status === "订正中").length,
-    未做: FILTER_ROWS.filter((r) => r.status === "未做").length,
+    all: allRows.length,
+    搭配: allRows.filter((r) => r.cause === "搭配").length,
+    订正中: allRows.filter((r) => r.status === "订正中").length,
+    未做: allRows.filter((r) => r.status === "未做").length,
   };
-  const rows = FILTER_ROWS.filter((r) => {
+  const rows = allRows.filter((r) => {
     if (filter === "all") return true;
     if (filter === "搭配") return r.cause === "搭配";
     return r.status === filter;
@@ -1514,7 +1549,7 @@ export function FilterTable({ empty = false }: { readonly empty?: boolean } = {}
       {empty ? (
         <p className="sk-ftable-empty">没有这类错题</p>
       ) : (
-        <div className="sk-ftable-scroll">
+        <div className="sk-ftable-scroll" tabIndex={0}>
           <table>
             <thead>
               <tr>
@@ -1563,7 +1598,7 @@ function InsightCurve({ series }: { readonly series: readonly number[] }) {
   );
 }
 
-function InsightViz({ card }: { readonly card: (typeof INSIGHTS)[number] }) {
+function InsightViz({ card }: { readonly card: InsightSpec }) {
   if (card.viz === "curve" && "series" in card && card.series) {
     return <InsightCurve series={card.series} />;
   }
@@ -1599,7 +1634,13 @@ function InsightViz({ card }: { readonly card: (typeof INSIGHTS)[number] }) {
   );
 }
 
-export function InsightCards({ empty = false }: { readonly empty?: boolean } = {}) {
+export function InsightCards({
+  empty = false,
+  items = INSIGHTS,
+}: {
+  readonly empty?: boolean;
+  readonly items?: readonly InsightSpec[];
+} = {}) {
   const [i, setI] = useState(0);
   if (empty) {
     return (
@@ -1611,7 +1652,7 @@ export function InsightCards({ empty = false }: { readonly empty?: boolean } = {
       </div>
     );
   }
-  const card = INSIGHTS[i];
+  const card = items[i];
   return (
     <div className="sk-insight" data-testid="ai-insight-cards" data-tone={card.tone} data-viz={card.viz}>
       <div className="sk-insight-top">
@@ -1627,14 +1668,14 @@ export function InsightCards({ empty = false }: { readonly empty?: boolean } = {
             <ChevronLeft size={14} strokeWidth={2.2} />
           </button>
           <span>
-            {i + 1} / {INSIGHTS.length}
+            {i + 1} / {items.length}
           </span>
           <button
             type="button"
             className="sk-approve-nav"
             aria-label="下一则"
-            disabled={i === INSIGHTS.length - 1}
-            onClick={() => setI((n) => Math.min(INSIGHTS.length - 1, n + 1))}
+            disabled={i === items.length - 1}
+            onClick={() => setI((n) => Math.min(items.length - 1, n + 1))}
           >
             <ChevronRight size={14} strokeWidth={2.2} />
           </button>
@@ -1655,11 +1696,46 @@ export function InsightCards({ empty = false }: { readonly empty?: boolean } = {
   );
 }
 
-export function StemMark({ text }: { readonly text: string }) {
+export type StemAid = {
+  readonly caption: string;
+  readonly columns: readonly string[];
+  readonly rows: readonly (readonly string[])[];
+};
+
+export function StemMark({
+  text,
+  aid,
+}: {
+  readonly text: string;
+  readonly aid?: StemAid;
+}) {
   return (
     <div className="sk-stem">
       <span className="sk-stem-kicker">题面</span>
       <span className="sk-stem-text">{text}</span>
+      {aid ? (
+        <div className="sk-stem-aid" data-turn-aid="table">
+          <span className="sk-stem-kicker">{aid.caption}</span>
+          <table className="sk-stem-table">
+            <thead>
+              <tr>
+                {aid.columns.map((c) => (
+                  <th key={c}>{c}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {aid.rows.map((row, i) => (
+                <tr key={i}>
+                  {row.map((cell, j) => (
+                    <td key={j}>{cell}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -1689,22 +1765,22 @@ export function FillBtn({ children }: { readonly children: ReactNode }) {
   );
 }
 
-function AnswerBody({
+export function AnswerBody({
   phase,
-  text,
+  paragraphs = [],
   extra,
   sources = [],
   sourcesOpen = false,
   widgets,
-  cited = false,
+  streaming = false,
 }: {
   readonly phase: StreamPhase;
-  readonly text: string;
+  readonly paragraphs?: readonly ProseParagraph[];
   readonly extra?: ReactNode;
   readonly sources?: readonly SourceCard[];
   readonly sourcesOpen?: boolean;
   readonly widgets?: ReactNode;
-  readonly cited?: boolean;
+  readonly streaming?: boolean;
 }) {
   const [citeFocus, setCiteFocus] = useState<number | undefined>(undefined);
   const [citeAnchor, setCiteAnchor] = useState<HTMLElement | null>(null);
@@ -1719,19 +1795,17 @@ function AnswerBody({
     setCiteAnchor(null);
   }, []);
 
-  if (phase === "waiting" || phase === "live" || phase === "recover" || phase === "halt") {
+  if (phase === "waiting" || phase === "live") {
     return null;
   }
 
-  if (phase === "error") {
-    return (
-      <TurnBlock kind="error">
-        <ErrorBand />
-      </TurnBlock>
-    );
+  if (phase === "error" && paragraphs.length === 0) {
+    return null;
   }
 
-  const showCited = cited && phase === "settled";
+  const showCited = phase === "settled";
+  const showProse = paragraphs.length > 0;
+  const showFoot = phase === "settled" || phase === "stop";
   const openCite = (n: number, el: HTMLButtonElement) => {
     if (citeFocus === n) {
       closeFloat();
@@ -1742,29 +1816,37 @@ function AnswerBody({
   };
   const floatItem = citeFocus != null ? sources.find((s) => s.n === citeFocus) : undefined;
 
+  if (!showProse && !showFoot) return null;
+
   return (
     <TurnBlock kind="answer">
       <div className="sk-answer-shell sk-answer-stack">
-        <div data-turn-slot="prose">
-          <AssistantProse streaming={phase === "streaming"}>
-            {showCited ? (
-              <p>
-                「遏制」的对象通常是已经起来的势头，语气偏硬
-                <Cite n={1} active={citeFocus === 1} onOpen={openCite} />。空里要的是还没成形的苗头，用「抑制」更贴搭配
-                <Cite n={2} active={citeFocus === 2} onOpen={openCite} />。
-              </p>
-            ) : (
-              <p>{text}</p>
-            )}
-          </AssistantProse>
-        </div>
+        {showProse ? (
+          <div data-turn-slot="prose">
+            <AssistantProse streaming={streaming || phase === "streaming"}>
+              {paragraphs.map((p, i) => (
+                <p key={i}>
+                  {p.segments.map((seg, j) =>
+                    "cite" in seg ? (
+                      showCited ? (
+                        <Cite key={j} n={seg.cite} active={citeFocus === seg.cite} onOpen={openCite} />
+                      ) : null
+                    ) : (
+                      <span key={j}>{seg.text}</span>
+                    ),
+                  )}
+                </p>
+              ))}
+            </AssistantProse>
+          </div>
+        ) : null}
         {phase === "settled" && extra}
         {phase === "settled" && widgets ? (
           <div className="sk-turn-widgets" data-turn-slot="widgets">
             {widgets}
           </div>
         ) : null}
-        {phase === "settled" || phase === "stop" ? (
+        {showFoot && showProse ? (
           <div data-turn-slot="footprint">
             <AnswerFootprint
               sourceCount={sources.length}
@@ -1791,188 +1873,6 @@ function AnswerBody({
         <SourceFloat item={floatItem} anchor={citeAnchor} onClose={closeFloat} />
       ) : null}
     </TurnBlock>
-  );
-}
-
-const SHORT_ANSWER = "空里要的是还没成形的苗头，用「抑制」更贴搭配。";
-const TOOL_ANSWER = "「遏制」的对象通常是已经起来的势头，语气偏硬。记忆钩子：遏制势头 · 抑制萌芽。";
-
-function dotsFor(density: DensityId, phase: StreamPhase): DotsState {
-  if (phase === "waiting") return "wait";
-  if (phase === "live" && density === "gate") return "wait";
-  if (phase === "live") return "tool";
-  if (phase === "streaming") return "stream";
-  if (phase === "stop") return "stop";
-  if (phase === "error") return "error";
-  if (phase === "recover") return "recover";
-  if (phase === "halt") return "halt";
-  return "done";
-}
-
-function copyFor(density: DensityId, phase: StreamPhase): string {
-  if (phase === "waiting") {
-    return density === "short" ? "正在想" : "正在对照近义干扰";
-  }
-  if (phase === "live" && density === "gate") return "等你选";
-  if (phase === "live" && density !== "short") return "正在检索";
-  if (phase === "recover") return "恢复中";
-  if (phase === "halt") return "正在停止";
-  return "";
-}
-
-function roundFor(phase: StreamPhase): RoundStatus {
-  if (phase === "streaming") return "stream";
-  if (phase === "settled") return "done";
-  if (phase === "stop") return "stop";
-  if (phase === "error") return "error";
-  if (phase === "recover") return "recover";
-  if (phase === "halt") return "halt";
-  return null;
-}
-
-function timeFor(density: DensityId, phase: StreamPhase): string | undefined {
-  if (phase === "waiting" || phase === "live") {
-    return density === "short" ? undefined : "4s";
-  }
-  if ((phase === "settled" || phase === "stop") && density !== "short") return "6s";
-  return undefined;
-}
-
-function ProcessSteps({ phase }: { readonly phase: StreamPhase }) {
-  const live = phase === "live";
-  return (
-    <>
-      <OpRow op="thought" text="先看搭配对象是「势头」，不是「情绪」。" live={live} />
-      <OpRow
-        op="search"
-        text="检索近义干扰 · 遏制 / 遏止 / 抑制"
-        live={live}
-        status={live ? "running" : "done"}
-        elapsed={live ? undefined : "1.2s"}
-      />
-      {live ? null : (
-        <>
-          <OpRow op="read" text="打开近义干扰表" elapsed="0.4s" />
-          <OpRow op="write" text="写入对照笔记" elapsed="0.6s" />
-        </>
-      )}
-    </>
-  );
-}
-
-export function DensityStream({
-  density,
-  phase = "settled",
-  question = "这道逻辑填空为什么不能选「遏制」？",
-  sourcesOpen = false,
-  onGateResolved,
-}: {
-  readonly density: DensityId;
-  readonly phase?: StreamPhase;
-  readonly question?: string;
-  readonly sourcesOpen?: boolean;
-  readonly onGateResolved?: (kind: "ok" | "skip") => void;
-}) {
-  const sources: readonly SourceCard[] = density === "short" ? [] : SAP_SOURCES.slice(0, 2);
-  const hasProcess = density !== "short";
-  const showChips = hasProcess && density !== "gate" && phase === "live";
-  const showStepFold = hasProcess && (phase === "settled" || phase === "stop");
-  const widgets =
-    density === "teach" ? (
-      <>
-        <MethodCard />
-        <YouTryGate />
-      </>
-    ) : density === "gate" ? (
-      <>
-        <RecommendCard />
-        <div className="sk-nav-cta">
-          <FillBtn>查看笔记</FillBtn>
-          <span className="spec-meta">导航 CTA · 炭黑，不是柔黄</span>
-        </div>
-      </>
-    ) : density === "tool" ? (
-      <>
-        <InsightCards />
-        <FilterTable />
-      </>
-    ) : null;
-
-  return (
-    <TurnStream>
-      <TurnBlock kind="user">
-        <div data-turn-slot="user">
-          <UserBubble content={question} />
-        </div>
-      </TurnBlock>
-
-      {density === "teach" ? (
-        <TurnBlock kind="process">
-          <div data-turn-slot="stem">
-            <StemMark text="对新生事物，应______其萌芽，而不是等它坐大再去堵。" />
-          </div>
-        </TurnBlock>
-      ) : null}
-
-      <TurnBlock kind="process">
-        <div data-turn-slot="status">
-          <TurnStatusLine
-            key={phase}
-            state={dotsFor(density, phase)}
-            copy={copyFor(density, phase)}
-            status={roundFor(phase)}
-            time={timeFor(density, phase)}
-            foldable={showStepFold}
-            defaultOpen={false}
-            rail={
-              showChips ? (
-                <div data-turn-slot="expert-rail">
-                  <LiveExpertPlayback />
-                </div>
-              ) : undefined
-            }
-          >
-            {showStepFold ? (
-              <div data-turn-slot="step-log">
-                <ProcessSteps phase={phase} />
-              </div>
-            ) : null}
-          </TurnStatusLine>
-        </div>
-        {density === "gate" && phase === "live" ? (
-          <div data-turn-slot="approval">
-            <ProposalCard
-              blocking
-              title="写入笔记前先确认"
-              reason="接下来会把「遏制势头 / 抑制萌芽」记进今日计划，并对照本周 3 道错题。"
-              onResolved={onGateResolved}
-            />
-          </div>
-        ) : null}
-      </TurnBlock>
-
-      <AnswerBody
-        phase={phase}
-        text={density === "short" ? SHORT_ANSWER : TOOL_ANSWER}
-        sources={sources}
-        sourcesOpen={sourcesOpen}
-        cited={density !== "short"}
-        extra={
-          density === "short" || phase !== "settled" ? null : (
-            <>
-              <div className="sk-lookback" data-turn-slot="lookback" data-ticket="SIK-1070">
-                <span className="sk-stem-kicker">{LOOKBACK_KICKER}</span>
-                <ContextCard item={LOOKBACK_SOURCE} numbered={false} />
-              </div>
-              <div data-turn-slot="widgets">
-                <PromptList items={["为什么不能选遏制", "对比近义", "做成今日计划"]} />
-              </div>
-            </>
-          )
-        }
-        widgets={phase === "settled" ? widgets : null}
-      />
-    </TurnStream>
   );
 }
 

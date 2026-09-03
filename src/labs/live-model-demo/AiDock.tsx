@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Columns2, Copy, PictureInPicture2, Plus, RotateCcw, Trash2, X } from "lucide-react";
-import { askSikao, type ReplyKind } from "@/lib/ask-sikao";
+import { askSikao, type ReplyKind } from "./ask-sikao";
 import { DOCK_HOSTS, type SourceChip } from "@/lib/dock-catalog";
 import { useAppStore, type DockPlace } from "@/lib/app-store";
 import {
@@ -15,7 +15,7 @@ import {
   YouTryGate,
 } from "@/components/stream/primitives";
 import { LOOKBACK_SOURCE } from "@/lib/spec-catalog";
-import { PromptBar, type PromptFile } from "@/components/prompt-bar";
+import { PromptBar, type PromptFile } from "./prompt-bar";
 
 type Msg = {
   id: string;
@@ -81,6 +81,7 @@ function seed(): Chat[] {
   return [{ id: "c0", title: "新对话", when: "现在", updatedAt: Date.now(), thread: [] }];
 }
 
+/** @demo-only Direct xAI + localStorage sessions. Canonical pages must not mount this. */
 export function AiDock() {
   const [live, setLive] = useState(false);
   useEffect(() => setLive(true), []);
@@ -296,7 +297,7 @@ function AiDockLive() {
 
   return (
     <>
-      <section className="sk-dock" data-place={place} data-mgr={histOpen} hidden={!open} data-testid="ai-dock">
+      <section className="sk-dock" data-place={place} data-mgr={histOpen} hidden={!open} data-testid="ai-dock" data-demo-only="true">
         {place === "ios" ? <span className="sk-dock-handle" aria-hidden="true" /> : null}
         <header className="sk-dock-head">
           <span className="sk-dock-bot" aria-hidden="true">
@@ -498,8 +499,8 @@ function DockTurn({ msg, onRetry }: { readonly msg: Msg; readonly onRetry: () =>
       <p className="sk-dock-prose">{msg.text}</p>
       {msg.kind === "teach" ? (
         <>
-          <MethodCard />
-          <YouTryGate />
+          <MethodCard title="先看宾语，再看语气硬度" reason="「遏制」管已起的势头；空里要的是还没成形的苗头。" />
+          <YouTryGate title="下一空自己选" items={["抑制萌芽", "遏制势头", "遏止蔓延"]} />
         </>
       ) : null}
       {msg.kind === "plan" ? <RecommendCard /> : null}
