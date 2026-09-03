@@ -1,4 +1,34 @@
-import type { DensityId, SectionId } from "./app-store";
+import type { SectionId } from "./app-store";
+
+export type { DensityId } from "@/contract/turn";
+
+export {
+  AGENT_STREAM,
+  ALIGN_RULES,
+  COPY_LOCK,
+  DENSITIES,
+  DENSITY_CHROME,
+  DOT_MACHINE,
+  DOT_STATES,
+  EVENT_TO_BLOCK,
+  FOOTPRINT_ACTIONS,
+  LAYOUT_SCALE,
+  RENDERER_TERMS,
+  TIMING_MATRIX,
+  TURN_SLOTS,
+  TURN_STATUS,
+  TYPE_SCALE,
+} from "@/contract/turn";
+
+export { TYPE_STACK, TYPE_SURFACES } from "@/contract/shell";
+export { HOST_MOUNT } from "@/contract/scenes";
+export {
+  EXPERTS,
+  FILTER_ROWS,
+  INSIGHTS,
+  LOOKBACK_SOURCE,
+  SAP_SOURCES,
+} from "@/player/fixtures/content";
 
 export type NavGroupId = "guide" | "turn" | "parts" | "rules";
 
@@ -29,67 +59,6 @@ export const SECTIONS: ReadonlyArray<{
   { id: "rules", label: "红线", kicker: "Contract", group: "rules" },
   { id: "tokens", label: "色板", kicker: "1040", group: "rules" },
   { id: "matrix", label: "矩阵", kicker: "Canon", group: "rules" },
-];
-
-export const DENSITIES: ReadonlyArray<{
-  id: DensityId;
-  title: string;
-  host: string;
-  flow: string;
-  note: string;
-  chrome: string;
-}> = [
-  {
-    id: "short",
-    title: "短答流",
-    host: "咨询 · 笔记 · hint",
-    flow: "Waiting Dots → StreamingProse。无过程则零 chrome。",
-    note: "禁止空「处理了 0s」。答案通栏无框，Claude 式浅用户泡。",
-    chrome: "用户泡 · Dots 状态行 · 散文 · 脚印",
-  },
-  {
-    id: "tool",
-    title: "工具流",
-    host: "通用 dock · 复盘 Agent · 计划",
-    flow: "工作时：Dots 状态行 + 专家栈 lucide chips 自己一行。出字后芯片收起。正文结束：状态行「已完成」可折叠，点开看多步骤。落定后发现卡 / 筛选表。",
-    note: "专家栈是活时过程 UI（简洁 lucide 条）。多步骤是正文后的折叠日志（Grok 式步骤列）。不是两套对话皮。绿给完成点阵和「已完成」，不对每步打勾。",
-    chrome: "+ 活时专家栈 · 正文后多步骤折叠 · 发现卡 · 筛选表",
-  },
-  {
-    id: "teach",
-    title: "讲题流",
-    host: "Teach · Guided",
-    flow: "同工具流（活时专家栈 → 正文后多步骤折叠），外加题面 mark。方法卡 / 你来在正文后。",
-    note: "方法卡 KindTag.suggest；你来门 KindTag.input。脚印贴在两张卡之后。",
-    chrome: "+ 题面 · 方法卡 · 你来",
-  },
-  {
-    id: "gate",
-    title: "门卡流",
-    host: "写笔记 · 整理 · 提案 · HITL",
-    flow: "活时确认卡挡住：先问你，选完才往下写。落定后推荐卡提案，不挡下一问。",
-    note: "确认卡只出现在活时。落定写计划用推荐卡。导航 CTA 炭黑。",
-    chrome: "+ 活时审批 · 落定推荐卡",
-  },
-];
-
-export const DENSITY_CHROME: ReadonlyArray<{
-  row: string;
-  short: boolean;
-  tool: boolean;
-  teach: boolean;
-  gate: boolean;
-}> = [
-  { row: "Dots 状态行", short: true, tool: true, teach: true, gate: true },
-  { row: "专家栈（工作时 lucide 条）", short: false, tool: true, teach: true, gate: false },
-  { row: "多步骤折叠（正文后点开）", short: false, tool: true, teach: true, gate: true },
-  { row: "角标浮出 chunk", short: false, tool: true, teach: true, gate: true },
-  { row: "题面 mark", short: false, tool: false, teach: true, gate: false },
-  { row: "方法卡 / 你来", short: false, tool: false, teach: true, gate: false },
-  { row: "审批卡 · 活时挡住", short: false, tool: false, teach: false, gate: true },
-  { row: "推荐卡 · 落定提案", short: false, tool: false, teach: false, gate: true },
-  { row: "发现卡 / 筛选表", short: false, tool: true, teach: false, gate: false },
-  { row: "炭黑导航 CTA", short: false, tool: false, teach: false, gate: true },
 ];
 
 export const FAMILIES = [
@@ -130,70 +99,6 @@ export const FAMILIES = [
   },
 ] as const;
 
-export const TURN_STATUS = {
-  title: "TurnStatus",
-  file: "Dots + 已完成 · 右时间",
-  does: "点阵贴着回合文案。思考时间在行右。绿给完成点阵和「已完成」。",
-  not: "不当每步绿勾，不是第六族 pill。时间不插在点阵和已完成中间。",
-} as const;
-
-/**
- * 完整 AI agent 对话骨架（四密同一套，只加减块）。
- * 活时专家栈（lucide chips）保留；正文结束后同一状态行折叠出多步骤。
- */
-export const AGENT_STREAM = {
-  title: "回合渲染器",
-  live: "工作时：回合态（Dots）自己一行；专家栈 lucide 自己一行。不展开多步骤。gate 活时是 Approval，不是专家栈。",
-  streaming: "出字：专家栈收起。回合态 stream。正文通栏无框，现网 StreamingProse。",
-  settled:
-    "正文结束后：回合态「已完成」可折叠。点开是多步骤（思考块 / 工具调用），不对每步打勾。专家栈不删数据，折进多步骤。",
-  stop: "停止：回合态 stop。已写出的正文保留。多步骤仍可打开。脚印仍出（有正文）。",
-  error: "失败：回合态 error + 重试。不对已成功工具调用打叉。无正文则无脚印。",
-  footprint:
-    "脚印在落定控件之后、来源列表之前。不进多步骤。有帮助/没帮助/复制/重新生成/回放；有引用才出来源。点来源才展开列表。桌面默认淡，hover/focus 拉满。streaming 不出脚印。",
-  order: "用户泡 →（讲题：题面）→ 回合态 →（专家栈 | Approval）→ 正文 → 多步骤折叠 → 落定控件 → 脚印 →（点来源后的列表）",
-} as const;
-
-export const FOOTPRINT_ACTIONS: ReadonlyArray<{
-  id: string;
-  label: string;
-  when: string;
-}> = [
-  { id: "up", label: "有帮助", when: "settled | stop，有正文" },
-  { id: "down", label: "没帮助", when: "同上" },
-  { id: "copy", label: "复制", when: "同上" },
-  { id: "regen", label: "重新生成", when: "同上" },
-  { id: "replay", label: "回放", when: "有过程可回放时" },
-  { id: "sources", label: "来源 N", when: "本回合有引用；点开才在脚印下展开列表。inline [n] 仍是旁浮出" },
-];
-
-/** 回合渲染器词表。与产品 CONTEXT.md「AI and billing」同锁。Claude content block 对齐。 */
-export const RENDERER_TERMS: ReadonlyArray<{
-  name: string;
-  en: string;
-  maps: string;
-  not: string;
-}> = [
-  { name: "回合渲染器", en: "Turn renderer", maps: "Claude content-block renderer / assistant-ui Message", not: "整页 chat UI；专家栈当整轮" },
-  { name: "回合", en: "Turn", maps: "one assistant message with many blocks", not: "Run；activity；Answer Session" },
-  { name: "内容块", en: "Content block", maps: "Claude thinking | tool_use | text", not: "Paper Block" },
-  { name: "思考块", en: "Thinking block", maps: "Claude thinking", not: "UI 写 chain-of-thought" },
-  { name: "工具调用", en: "Tool call", maps: "Claude tool_use", not: "专家芯片当工具名" },
-  { name: "工具结果", en: "Tool result", maps: "Claude tool_result", not: "逐步绿勾" },
-  { name: "正文", en: "Assistant text", maps: "Claude text / StreamingProse", not: "assistant bubble" },
-  { name: "专家栈", en: "Expert rail", maps: "live lucide chips only", not: "落定多步骤；第六族" },
-  { name: "多步骤", en: "Step log", maps: "Grok Worked-for fold / Claude tool list", not: "活时专家栈" },
-  { name: "回合态", en: "Turn status", maps: "Dots + copy + elapsed", not: "StatusBadge 绿勾" },
-  { name: "输入条", en: "Composer", maps: "Claude/ChatGPT composer", not: "PromptList" },
-  { name: "脚印", en: "Footprint", maps: "end-of-turn actions", not: "塞进多步骤" },
-  { name: "引用", en: "Cite", maps: "inline [n] float", not: "结果页扫卡进回合" },
-  { name: "用户泡", en: "User bubble", maps: "user message chrome only", not: "包住正文" },
-];
-
-/**
- * Beautiful UI → 司考回合渲染器。先偷几何/交互，再按四密场景裁。
- * land: spec = 原型已标本；product = sikao 仓可落地程度。
- */
 export const BUI_TO_SIKAO: ReadonlyArray<{
   bui: string;
   steal: string;
@@ -313,7 +218,6 @@ export const BUI_TO_SIKAO: ReadonlyArray<{
   },
 ];
 
-/** 回合渲染器要能开执行，还必须补的契约。缺任一项产品不得当 1068 Done。 */
 export const LANDING_GAPS: ReadonlyArray<{
   id: string;
   need: string;
@@ -361,7 +265,6 @@ export const LANDING_GAPS: ReadonlyArray<{
   },
 ];
 
-/** 缺口对照：原型已锁什么 / 产品还缺什么。执行只抄「原型」列。 */
 export const GAP_CONTRAST: ReadonlyArray<{
   id: string;
   gap: string;
@@ -418,297 +321,6 @@ export const GAP_CONTRAST: ReadonlyArray<{
   },
 ];
 
-/** consult SSE → 内容块。产品 `decodeConsultStreamItem` 必须按此投影，禁止另造机。 */
-export const EVENT_TO_BLOCK: ReadonlyArray<{
-  frame: string;
-  block: string;
-  chrome: string;
-}> = [
-  { frame: "phase thinking/gathering · 无 delta", block: "思考块", chrome: "回合态 wait；可有专家栈" },
-  { frame: "tool calling · 无正文", block: "工具调用", chrome: "回合态 tool + 专家栈" },
-  { frame: "delta / assistantText", block: "正文", chrome: "回合态 stream；专家栈收起" },
-  { frame: "cancelled", block: "—", chrome: "回合态 stop；正文保留；多步骤可折" },
-  { frame: "provider_unknown / failed", block: "—", chrome: "回合态 error + ErrorBand" },
-  { frame: "stop_pending", block: "—", chrome: "回合态 halt" },
-  { frame: "recovering / replay_gap", block: "—", chrome: "回合态 recover" },
-  { frame: "completed + 有过程", block: "工具结果", chrome: "回合态 done + 多步骤折叠" },
-  { frame: "completed 无过程", block: "正文", chrome: "回合态 done，零折叠" },
-  { frame: "completed | cancelled 且已有正文", block: "脚印", chrome: "Footprint；点来源展开列表；不进多步骤" },
-];
-
-/**
- * 可抄 Turn 树。产品必须用同一顺序挂节点；data-turn-slot 与此 id 一致。
- * ticket: 1068 画皮；1070/1072 只留插槽。
- */
-export const TURN_SLOTS: ReadonlyArray<{
-  id: string;
-  name: string;
-  ticket: string;
-  when: string;
-}> = [
-  { id: "user", name: "用户泡", ticket: "SIK-1068", when: "每回合" },
-  { id: "stem", name: "题面 mark", ticket: "SIK-1068", when: "仅 teach" },
-  { id: "status", name: "回合态 Dots", ticket: "SIK-1068", when: "每回合" },
-  { id: "expert-rail", name: "专家栈", ticket: "SIK-1068", when: "live 且非 short/gate" },
-  { id: "approval", name: "Approval 活时门", ticket: "SIK-1068", when: "gate + live" },
-  { id: "prose", name: "正文", ticket: "SIK-1068", when: "streaming | settled | stop" },
-  { id: "step-log", name: "多步骤折叠", ticket: "SIK-1068", when: "settled | stop，且有过程" },
-  { id: "lookback", name: "你记过", ticket: "SIK-1070", when: "settled 有笔记；1068 只留槽" },
-  { id: "widgets", name: "落定控件", ticket: "SIK-1068", when: "settled：方法卡/发现卡/推荐卡/PromptList" },
-  { id: "footprint", name: "脚印", ticket: "SIK-1068", when: "settled | stop，有正文" },
-  { id: "source-list", name: "来源列表", ticket: "SIK-1070", when: "点脚印来源后；1068 只留槽" },
-  { id: "composer", name: "输入条 / 壳", ticket: "SIK-1072", when: "Turn 外；1068 不画 Dock/Prompt Bar" },
-];
-
-/** 相位 × 槽。● 画出；— 不画；fold 默认收起可点开。 */
-export const TIMING_MATRIX: ReadonlyArray<{
-  slot: string;
-  waiting: string;
-  live: string;
-  streaming: string;
-  settled: string;
-  stop: string;
-}> = [
-  { slot: "status", waiting: "● wait", live: "● tool/wait", streaming: "● stream", settled: "● done", stop: "● stop" },
-  { slot: "expert-rail", waiting: "—", live: "● 非 gate", streaming: "—", settled: "—", stop: "—" },
-  { slot: "approval", waiting: "—", live: "● 仅 gate", streaming: "—", settled: "—", stop: "—" },
-  { slot: "prose", waiting: "—", live: "—", streaming: "●", settled: "●", stop: "● 已写部分" },
-  { slot: "step-log", waiting: "—", live: "—", streaming: "—", settled: "fold", stop: "fold" },
-  { slot: "widgets", waiting: "—", live: "—", streaming: "—", settled: "●", stop: "—" },
-  { slot: "footprint", waiting: "—", live: "—", streaming: "—", settled: "●", stop: "●" },
-  { slot: "source-list", waiting: "—", live: "—", streaming: "—", settled: "点开", stop: "—" },
-];
-
-/** 宿主只换密度/题面/控件，不另起过程条。 */
-export const HOST_MOUNT: ReadonlyArray<{
-  host: string;
-  density: string;
-  extra: string;
-}> = [
-  { host: "Home dock", density: "short | tool | gate", extra: "默认挂 DensityStream；壳归 1072" },
-  { host: "Teach / Guided", density: "teach", extra: "加 stem；方法卡/你来走 widgets" },
-  { host: "Essay", density: "tool | teach", extra: "同一 Turn，禁止自绘 StatusBadge/过程条" },
-  { host: "Tutor", density: "teach", extra: "同上" },
-  { host: "Review", density: "teach | gate", extra: "只保留 Modal/dock 拓扑；流内皮同一 Turn" },
-];
-
-/**
- * 回合排印分三壳。功能/动线 H17：iOS Phone = Web 移动端。
- * 字栈允许原生：Web 用 DM Sans；iOS 用 SF Pro + PingFang。
- */
-export const TYPE_SURFACES: ReadonlyArray<{
-  id: "web-desktop" | "web-mobile" | "ios-phone";
-  label: string;
-  stack: string;
-  mono: string;
-  note: string;
-}> = [
-  {
-    id: "web-desktop",
-    label: "Web 桌面壳",
-    stack: "DM Sans → Inter → Noto Sans SC → PingFang SC → YaHei",
-    mono: "JetBrains Mono",
-    note: ">768。产品 tokens 默认档。",
-  },
-  {
-    id: "web-mobile",
-    label: "Web 移动壳",
-    stack: "DM Sans → Inter → Noto Sans SC → PingFang SC → YaHei",
-    mono: "JetBrains Mono",
-    note: "≤768 compact。正文不跟 tokens 把流内正文降到 13。输入条 16px 防 Safari 缩放。",
-  },
-  {
-    id: "ios-phone",
-    label: "iOS Phone",
-    stack: "SF Pro Text → PingFang SC → 系统 UI",
-    mono: "SF Mono / Menlo",
-    note: "H17 功能跟 Web 移动。字栈原生。iPad 未拍板，禁止外推。",
-  },
-];
-
-export const TYPE_SCALE: ReadonlyArray<{
-  slot: string;
-  desktop: string;
-  mobile: string;
-  ios: string;
-}> = [
-  { slot: "正文", desktop: "14 / 1.75 / 400", mobile: "14 / 1.75 / 400", ios: "16 / 1.75 / 400" },
-  { slot: "用户泡", desktop: "14 / 1.7 / 400", mobile: "13 / 1.65 / 400", ios: "16 / 1.7 / 400" },
-  { slot: "卡头", desktop: "16 / 1.5 / 600", mobile: "14 / 1.45 / 600", ios: "17 / 1.4 / 600" },
-  { slot: "回合态 · 多步骤 · PromptList", desktop: "12 / 1.4 / 500", mobile: "12 / 1.4 / 500", ios: "13 / 1.4 / 500" },
-  { slot: "KindTag · kicker · 脚印数字", desktop: "11 / 1.4 / 400", mobile: "11 / 1.4 / 400", ios: "11 / 1.4 / 400" },
-  { slot: "elapsed", desktop: "11 mono", mobile: "11 mono", ios: "11 SF Mono" },
-  { slot: "输入条", desktop: "14 / 1.6 / 400", mobile: "16 / 1.4 / 400", ios: "17 / 1.4 / 400" },
-];
-
-/** 回合布局。单位 px。触控地板 44 只约束 CTA，不放大 Dots。 */
-export const LAYOUT_SCALE: ReadonlyArray<{
-  slot: string;
-  desktop: string;
-  mobile: string;
-  ios: string;
-}> = [
-  { slot: "Turn 列宽", desktop: "主列 max 720，居中", mobile: "通栏，左右 16", ios: "通栏，左右 16，避开 Home Indicator" },
-  { slot: "用户泡", desktop: "max 82%，右对齐，pad 8 12，r 12/12/5/12", mobile: "max 88%，pad 8 12", ios: "max 88%，pad 8 12" },
-  { slot: "回合态行", desktop: "高 28，Dots 16，gap 6", mobile: "高 28，Dots 16", ios: "高 32，Dots 16" },
-  { slot: "专家栈", desktop: "芯片 22，间距 6，自己一行", mobile: "同左，可横滑", ios: "芯片 28 触控，横滑" },
-  { slot: "多步骤行", desktop: "高 22，lucide 槽 16，列 gap 6", mobile: "高 24", ios: "高 28，lucide 槽 16" },
-  { slot: "正文", desktop: "通栏无框，段间距 8", mobile: "同左", ios: "同左" },
-  { slot: "Approval / 推荐卡", desktop: "sunken，内边距 16，主钮高 32", mobile: "通栏，主钮高 44", ios: "通栏，主钮高 44" },
-  { slot: "脚印", desktop: "高 28，hover 才拉满对比", mobile: "高 44 触控，常显", ios: "高 44，常显" },
-  { slot: "输入条", desktop: "高 40，圆 12", mobile: "高 44", ios: "高 44，键盘避让" },
-];
-
-/**
- * 双轴对齐。X = 左缘/右缘；Y = 行中心或数字 baseline。
- * --turn-icon 16px 是 Dots / lucide / 首芯片的同一列。
- */
-export const ALIGN_RULES: ReadonlyArray<{
-  slot: string;
-  x: string;
-  y: string;
-}> = [
-  { slot: "回合态", x: "Dots 左 = 正文左；时长右 = 列右", y: "Dots / 文案 / 时长 / chevron 同一行垂直中心" },
-  { slot: "专家栈", x: "首芯片左 = Dots 左（--turn-icon 列）", y: "芯片垂直中心对齐" },
-  { slot: "多步骤", x: "lucide 槽 16 = Dots 列；耗时右齐时长", y: "lucide / 文案 / 耗时垂直中心" },
-  { slot: "确认卡", x: "KindTag 与问句同一行；选项左齐问句", y: "KindTag 与问句垂直中心；选项等高" },
-  { slot: "发现卡", x: "KindTag / 标题 / 数字 / 图 / CTA 左齐", y: "KindTag 与翻页中心；数字与单位 baseline" },
-  { slot: "推荐卡", x: "KindTag 与问句同一行；主建议与推荐度两端", y: "KindTag 与问句中心；推荐度与标题中心" },
-  { slot: "脚印", x: "图标行左齐正文；按钮等距", y: "图标垂直中心；来源数字与图标中心" },
-];
-
-/** 回合文案锁。字面以 SIK-1066 1066.v4 为准；这里只列槽位。 */
-export const COPY_LOCK: ReadonlyArray<{
-  slot: string;
-  copy: string;
-  avoid: string;
-}> = [
-  { slot: "回合态 wait", copy: "正在想", avoid: "Churning / Thinking" },
-  { slot: "回合态 tool", copy: "正在检索", avoid: "Running tools" },
-  { slot: "回合态 stream", copy: "（空，点阵说话）", avoid: "生成中 badge" },
-  { slot: "回合态 done", copy: "已完成", avoid: "Done / 绿色勾" },
-  { slot: "回合态 stop", copy: "已停止生成", avoid: "Cancelled" },
-  { slot: "回合态 error", copy: "未确认 / 重试", avoid: "Failed" },
-  { slot: "KindTag", copy: "到你了 · 你记过", avoid: "可回看" },
-  { slot: "推荐度", copy: "1–5", avoid: "高信心" },
-  { slot: "导航 CTA", copy: "查看笔记", avoid: "柔黄主钮" },
-  { slot: "脚印", copy: "有帮助 / 没帮助 / 复制 / 重新生成 / 来源 N", avoid: "Worked for" },
-  { slot: "活时门提示", copy: "先选一下，选完才往下写", avoid: "回合停住 · 确认后才生成" },
-  { slot: "回合态 gate", copy: "等你选", avoid: "等待确认" },
-  { slot: "门卡 KindTag", copy: "确认", avoid: "审批" },
-  { slot: "发现卡空态", copy: "这一轮没有新的错因", avoid: "没有量化发现" },
-];
-
-export const TYPE_STACK = {
-  ui: TYPE_SURFACES[0].stack,
-  mono: TYPE_SURFACES[0].mono,
-  rules: "CJK 禁止斜体。最小 11px。三壳对照 TYPE_SURFACES。回合不用 display/h1。",
-} as const;
-
-/**
- * Dots 投影 1040 DurableAttachmentState + ExecutionTerminal。
- * 几何：4px 点、gap 2px、槽 16×16 整数格；色相按终态/中断/失败分。
- * 不新造 run 机，不把点阵画上 DurableRunStatusBar。
- */
-export const DOT_STATES = [
-  {
-    id: "wait",
-    title: "等待",
-    from: "attached 等待 / silent <500ms",
-    take: "ink chevron 波",
-    color: "ink",
-    copy: "正在想",
-    status: null,
-    time: "4s",
-  },
-  {
-    id: "tool",
-    title: "工具",
-    from: "attached + live tools",
-    take: "AI 蓝列扫",
-    color: "ai",
-    copy: "正在检索",
-    status: null,
-    time: "4s",
-  },
-  {
-    id: "stream",
-    title: "生成",
-    from: "attached 已出 token",
-    take: "AI 蓝扩环",
-    color: "ai",
-    copy: "",
-    status: "stream",
-    time: undefined,
-  },
-  {
-    id: "recover",
-    title: "续看",
-    from: "recovering / exhausted / replay_gap",
-    take: "warn 慢波 · 条仍是 DurableRunStatusBar",
-    color: "warn",
-    copy: "",
-    status: "recover",
-    time: undefined,
-  },
-  {
-    id: "halt",
-    title: "正在停止",
-    from: "stop_pending",
-    take: "warn 冻帧 · 不是 cancelled",
-    color: "warn",
-    copy: "",
-    status: "halt",
-    time: undefined,
-  },
-  {
-    id: "stop",
-    title: "已停止",
-    from: "cancelled",
-    take: "muted rest · 气泡「已停止生成」",
-    color: "muted",
-    copy: "",
-    status: "stop",
-    time: "3s",
-  },
-  {
-    id: "error",
-    title: "未确认",
-    from: "provider_unknown / failed / stop_failed",
-    take: "err X · 不当成功、不当普通停止",
-    color: "err",
-    copy: "",
-    status: "error",
-    time: undefined,
-  },
-  {
-    id: "done",
-    title: "完成",
-    from: "completed",
-    take: "ok 绿十字",
-    color: "ok",
-    copy: "",
-    status: "done",
-    time: "6s",
-  },
-] as const;
-
-export const DOT_MACHINE: ReadonlyArray<{
-  state: string;
-  user: string;
-  dots: string;
-}> = [
-  { state: "attached + 等待 / silent<500ms", user: "等待行", dots: "wait · 开 · ink" },
-  { state: "attached + live tools", user: "状态行下一行 chip 上顶", dots: "tool · 开 · AI 蓝" },
-  { state: "attached + 已出 token", user: "生成中", dots: "stream · 开 · AI 蓝" },
-  { state: "recovering / exhausted / replay_gap", user: "条「恢复中」", dots: "recover · warn" },
-  { state: "stop_pending", user: "条「正在停止」", dots: "halt · warn 冻" },
-  { state: "cancelled", user: "气泡「已停止生成」", dots: "stop · muted" },
-  { state: "provider_unknown / failed / stop_failed", user: "条「生成未确认」", dots: "error · err X" },
-  { state: "completed", user: "「已完成」", dots: "done · ok 绿" },
-  { state: "auth_required / status_reconcile", user: "只读条", dots: "recover · 不另造" },
-];
-
 export const ENTRIES = [
   { id: "scene", title: "SceneAiChip", size: "32 / 36 / 44", note: "场景顶栏。icon-only，无可见「AI」。" },
   { id: "seed", title: "Seed / welcome", size: "avatar 36+", note: "欢迎态身份标。pencil 跟正文色，spark 走 AI 蓝。" },
@@ -750,7 +362,7 @@ export const RULES: ReadonlyArray<{ kind: "do" | "dont"; title: string; body: st
   {
     kind: "do",
     title: "来源要诚实",
-    body: "只收本轮跑过的工具和正文笔记。对话学 Claude：正文先、点 [n] 在角标旁浮出那一张。「你记过」是把已有笔记带出来的 Context Card，点开看 chunk。列表只出现在整轮之后。结果页才文前扫卡。",
+    body: "只收本轮跑过的工具和正文笔记。对话学 Claude：正文先、点 [n] 在角标旁浮出那一张。「你记过」是把已有笔记带出来的 Context Card，点开看 chunk。列表只出现在整轮之后。结果页才文前扫卡。原型只画已验证状态与布局；能否进模型上下文由主仓 DTO/ACL 决定。",
   },
   {
     kind: "dont",
@@ -829,46 +441,7 @@ export const HITL = [
   { id: "execute", title: "已授权才跑", body: "蓝 pill 回执。进度可见，不默默后台。" },
 ] as const;
 
-export const SAP_SOURCES = [
-  {
-    n: 1,
-    title: "近义干扰表",
-    kind: "工具",
-    snippet: "「遏制」管已起的势头，语气偏硬。",
-    body: "「遏制」的对象通常是已经起来的势头，语气偏硬，常配「蔓延」「势头」「通胀」。空里要的是还没成形的苗头，用「抑制」更贴搭配。近义干扰常拿一个「对、但搭配不对」的词来抢注意力，先看宾语再看语气硬度。",
-  },
-  {
-    n: 2,
-    title: "言语 · 逻辑填空",
-    kind: "笔记",
-    snippet: "记忆钩子：遏制势头 · 抑制萌芽。",
-    body: "逻辑填空先看宾语，再看语气硬度。记忆钩子：遏制势头 · 抑制萌芽。本周填空错 3 道，都栽在「势头 / 苗头」搭配上，不要只记近义本身。对照卷面时把宾语圈出来，再选软硬。",
-  },
-  {
-    n: 3,
-    title: "今日计划",
-    kind: "笔记",
-    snippet: "本周填空错 3 道，都栽在搭配。",
-    body: "把「遏制 / 抑制」这组近义写进今日计划：先做 2 道宾语是萌芽或苗头的旧题，再对照近义干扰表。错因记在搭配，不记在词义。完成后再用「你来」空走一遍。",
-  },
-] as const;
-
 export const LOOKBACK_KICKER = "你记过" as const;
-
-export const LOOKBACK_SOURCE = {
-  n: 1,
-  title: "近义干扰 · 势头/苗头",
-  kind: "笔记",
-  snippet: "记忆钩子：遏制势头 · 抑制萌芽。本周填空错 3 道，都栽在搭配。",
-  body: "逻辑填空先看宾语，再看语气硬度。记忆钩子：遏制势头 · 抑制萌芽。本周填空错 3 道，都栽在「势头 / 苗头」搭配上，不要只记近义本身。对照卷面时把宾语圈出来，再选软硬。",
-} as const;
-
-export const EXPERTS = [
-  { id: "e1", name: "搭配", op: "thought", text: "宾语是「萌芽」，不是已经起来的势头。" },
-  { id: "e2", name: "近义", op: "search", text: "检索遏制 / 遏止 / 抑制。" },
-  { id: "e3", name: "卷面", op: "read", text: "对照言语逻辑填空近义表。" },
-  { id: "e4", name: "综合", op: "tool", text: "抑制萌芽更贴；遏制语气偏硬。" },
-] as const;
 
 export const BUI_WIDGETS = [
   {
@@ -905,68 +478,5 @@ export const BUI_WIDGETS = [
     when: "工具流 · 落定",
     vs: "比 ActionChip 竖叠更适合对照。芯片重排行，不当导航。",
     scene: "近义错题表：全部 / 搭配 / 订正中 / 未做。",
-  },
-] as const;
-
-export const FILTER_ROWS = [
-  { name: "遏制 / 抑制萌芽", topic: "言语填空", status: "已订正", cause: "搭配" },
-  { name: "蔓延 / 扩散", topic: "言语填空", status: "未做", cause: "近义" },
-  { name: "遏止 / 阻止", topic: "言语填空", status: "已订正", cause: "语气" },
-  { name: "苗头 / 势头", topic: "逻辑填空", status: "订正中", cause: "搭配" },
-  { name: "萌芽 / 端倪", topic: "逻辑填空", status: "已订正", cause: "搭配" },
-] as const;
-
-export const INSIGHTS = [
-  {
-    viz: "bars" as const,
-    kicker: "发现",
-    title: "本周填空 3 道栽在「势头 / 苗头」搭配。",
-    hero: { n: "3", unit: "道" },
-    tone: "risk" as const,
-    rows: [
-      { name: "遏制", label: "2 道", value: 2 },
-      { name: "抑制", label: "没错过", value: 0 },
-      { name: "遏止", label: "1 道", value: 1 },
-    ],
-    ask: "对照这 3 道",
-  },
-  {
-    viz: "progress" as const,
-    kicker: "发现",
-    title: "今日计划还差 2 道「萌芽 / 苗头」旧题。",
-    hero: { n: "1", unit: "/ 3" },
-    tone: "ai" as const,
-    progress: 1 / 3,
-    rows: [
-      { name: "已做", label: "1 道", value: 1 },
-      { name: "还差", label: "2 道", value: 2 },
-    ],
-    ask: "抽 2 道旧题",
-  },
-  {
-    viz: "curve" as const,
-    kicker: "发现",
-    title: "近 7 天填空正确率在往上走。",
-    hero: { n: "61", unit: "%" },
-    tone: "ai" as const,
-    series: [48, 50, 47, 52, 55, 58, 61],
-    rows: [
-      { name: "周一", label: "48%", value: 48 },
-      { name: "今天", label: "61%", value: 61 },
-    ],
-    ask: "看这周填空",
-  },
-  {
-    viz: "compare" as const,
-    kicker: "发现",
-    title: "填空是唯一掉队的模块。",
-    hero: { n: "61", unit: "%" },
-    tone: "warn" as const,
-    rows: [
-      { name: "判断", label: "78%", value: 78 },
-      { name: "言语", label: "61%", value: 61 },
-      { name: "资料", label: "74%", value: 74 },
-    ],
-    ask: "先补填空",
   },
 ] as const;

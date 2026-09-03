@@ -3,8 +3,9 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 const matrix = readFileSync(new URL("../src/lib/spec-matrix.ts", import.meta.url), "utf8");
+const scenes = readFileSync(new URL("../src/contract/scenes.ts", import.meta.url), "utf8");
 const app = readFileSync(new URL("../src/components/spec-app.tsx", import.meta.url), "utf8");
-const source = `${matrix}\n${app}`;
+const source = `${matrix}\n${scenes}\n${app}`;
 
 test("SIK-1067 presents stream chrome as flagless infrastructure", () => {
   assert.doesNotMatch(source, /FEATURE_FLAG/);

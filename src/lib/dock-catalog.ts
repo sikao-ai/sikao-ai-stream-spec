@@ -1,4 +1,4 @@
-import type { DockHost } from "./ask-sikao";
+import type { DockHostId as DockHost } from "@/contract/shell";
 
 export type SourceKey = "bank" | "note" | "cal";
 export type SourceStatus = "ready" | "sync" | "stale" | "err";

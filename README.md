@@ -1,10 +1,20 @@
 # 司考 AI 流规范
 
-SIK-1067 / SIK-1072 规格 App：四密五族、统一 Prompt Bar、AI dock（浮层 / 右栏 / iOS）。
+契约实验室：验证 **同一输入状态应画成什么**。sikao 主仓负责状态如何产生、是否有权限、是否计费、能否恢复。
 
-```bash
-npm install
-npm run dev
+```text
+真实产品状态夹具
+→ 场景播放器
+→ Turn / Shell 渲染器
+→ 截图、DOM、a11y 回归
 ```
 
-入口：左轨「问这一页 ⌘J」或 SceneAiChip。默认 Rounded 栏，会话管理器是 popover。
+```bash
+npm ci
+npm run dev
+npm test
+```
+
+Canonical 入口：`/`。左轨「回合」是 `ScenarioPlayer`（逐帧 / 暂停 / 终态）。直连 xAI、`localStorage` 会话、假听写在 `/labs/live-model-demo`，标 `demo-only`。
+
+钉住：`src/contract/manifest.ts`（sikao `origin/main` SHA、Turn / Shell 契约版本）。主仓 SHA 或锁定文案漂移时 `npm run check:pin` 失败。

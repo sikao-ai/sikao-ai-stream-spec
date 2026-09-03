@@ -121,7 +121,7 @@ export function PromptBar({
   }
 
   return (
-    <div className="sk-pbar">
+    <div className="sk-pbar" data-demo-only="true">
       {rows.length > 0 ? (
         <div className="sk-pbar-menu" role="listbox">
           {rows.map((row, i) => (

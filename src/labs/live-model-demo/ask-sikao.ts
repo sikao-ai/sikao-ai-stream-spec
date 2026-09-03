@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { DockHostId } from "@/contract/shell";
 
-export type DockHost = "overview" | "teach" | "notes";
+/** @demo-only Live model demo. Not part of the contract laboratory. */
+export type DockHost = DockHostId;
 export type ReplyKind = "text" | "teach" | "plan" | "review" | "note";
 
 export type AskFile = {

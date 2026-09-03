@@ -1,0 +1,35 @@
+name: contract-lab
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: npm ci
+        run: npm ci
+      - name: typecheck
+        run: npm run typecheck
+      - name: lint
+        run: npm run lint
+      - name: fixtures + pin
+        run: npm test
+      - name: install chromium
+        run: npx playwright install --with-deps chromium
+      - name: 1440/390 light/dark shots + axe
+        run: |
+          npm run dev &
+          npm run test:visual
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: contract-shots
+          path: screenshots/contract
+          if-no-files-found: ignore
