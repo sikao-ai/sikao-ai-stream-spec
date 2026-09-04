@@ -157,3 +157,10 @@ export const STEPS_DONE = [
   { op: "read" as const, text: "打开近义干扰表", elapsed: "0.4s" },
   { op: "write" as const, text: "写入对照笔记", elapsed: "0.6s" },
 ];
+
+export const STEPS_PARTIAL = [
+  { op: "thought" as const, text: "先看搭配对象是「势头」，不是「情绪」。" },
+  { op: "search" as const, text: "检索近义干扰 · 遏制 / 遏止 / 抑制", elapsed: "1.2s" },
+  { op: "read" as const, text: "打开近义干扰表", elapsed: "0.4s" },
+  { op: "write" as const, text: "写入对照笔记失败", elapsed: "0.6s", status: "rejected" as const },
+];

@@ -10,15 +10,29 @@ const PLAY_MS = 400;
 export function ScenarioPlayer({
   initialId = "tool",
   compact = false,
+  ids,
 }: {
   readonly initialId?: string;
   readonly compact?: boolean;
+  readonly ids?: readonly string[];
 }) {
+  const catalog = useMemo(
+    () => (ids?.length ? SCENARIOS.filter((s) => ids.includes(s.id)) : SCENARIOS),
+    [ids],
+  );
   const [id, setId] = useState(initialId);
-  const scenario = useMemo(() => getScenario(id), [id]);
   const [index, setIndex] = useState(0);
   const [view, setView] = useState<TurnView>("live");
   const [playing, setPlaying] = useState(false);
+  const scenario = useMemo(() => getScenario(id), [id]);
+
+  useEffect(() => {
+    setId(initialId);
+  }, [initialId]);
+
+  useEffect(() => {
+    if (ids?.length && !ids.includes(id)) setId(ids[0]);
+  }, [ids, id]);
 
   useEffect(() => {
     setIndex(0);
@@ -45,16 +59,18 @@ export function ScenarioPlayer({
     <div className="spec-player" data-testid="scenario-player" data-scenario={scenario.id} data-view={view}>
       {compact ? null : (
         <div className="spec-player-toolbar">
-          <label className="spec-player-field">
-            <span>场景</span>
-            <select value={id} onChange={(e) => setId(e.target.value)} aria-label="场景">
-              {SCENARIOS.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.title}
-                </option>
-              ))}
-            </select>
-          </label>
+          {ids?.length ? null : (
+            <label className="spec-player-field">
+              <span>场景</span>
+              <select value={id} onChange={(e) => setId(e.target.value)} aria-label="场景">
+                {catalog.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <div className="spec-seg spec-seg-quiet" role="tablist" aria-label="投影">
             {TURN_VIEWS.map((v) => (
               <button key={v} type="button" role="tab" aria-selected={view === v} data-active={view === v} onClick={() => setView(v)}>
@@ -83,7 +99,8 @@ export function ScenarioPlayer({
         </div>
       )}
       <p className="spec-meta">
-        {scenario.host} · {scenario.runtime} · 帧 {index + 1}/{scenario.frames.length} · {frame.phase} · 槽 {slots.join(" → ") || "—"}
+        {scenario.host} · {scenario.runtime} · 帧 {index + 1}/{scenario.frames.length} · {frame.phase}
+        {frame.seq != null ? ` · seq ${frame.seq}` : ""} · 槽 {slots.join(" → ") || "—"}
         {same ? " · live/persisted/replay 顺序一致" : " · 顺序不一致"}
       </p>
       <TurnRenderer frame={frame} view={view} />

@@ -15,6 +15,6 @@ npm run dev
 npm test
 ```
 
-Canonical 入口：`/`。左轨「回合」是 `ScenarioPlayer`（逐帧 / 暂停 / 终态）。直连 xAI、`localStorage` 会话、假听写在 `/labs/live-model-demo`，标 `demo-only`。
+Canonical 入口：`/`。左轨「回合」是 `ScenarioPlayer`（逐帧 / 暂停 / 终态）。「运行时」四章投影主仓：生命周期（Conversation / Turn / Run / Effect / Artifact）、真实 Frame 对照、宿主权限矩阵、失败实验室。直连 xAI、`localStorage` 会话、假听写在 `/labs/live-model-demo`，标 `demo-only`。
 
 钉住：`src/contract/manifest.ts`（sikao `origin/main` SHA、Turn / Shell 契约版本）。主仓 SHA 或锁定文案漂移时 `npm run check:pin` 失败。

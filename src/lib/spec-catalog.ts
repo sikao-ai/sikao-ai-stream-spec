@@ -30,7 +30,7 @@ export {
   SAP_SOURCES,
 } from "@/player/fixtures/content";
 
-export type NavGroupId = "guide" | "turn" | "parts" | "rules";
+export type NavGroupId = "guide" | "turn" | "runtime" | "parts" | "rules";
 
 export const NAV_GROUPS: ReadonlyArray<{
   id: NavGroupId;
@@ -39,6 +39,7 @@ export const NAV_GROUPS: ReadonlyArray<{
 }> = [
   { id: "guide", label: "导览", hint: "从哪读起" },
   { id: "turn", label: "回合渲染器", hint: "Claude 式一轮怎么画" },
+  { id: "runtime", label: "运行时", hint: "主仓投影，不另造机" },
   { id: "parts", label: "组件", hint: "零件细节，不是整轮" },
   { id: "rules", label: "规则", hint: "红线、色板、矩阵" },
 ];
@@ -53,6 +54,10 @@ export const SECTIONS: ReadonlyArray<{
   { id: "playground", label: "回合", kicker: "Turn", group: "turn" },
   { id: "density", label: "四密", kicker: "Density", group: "turn" },
   { id: "dock", label: "壳", kicker: "Dock", group: "turn" },
+  { id: "lifecycle", label: "生命周期", kicker: "Life", group: "runtime" },
+  { id: "frames", label: "Frame 对照", kicker: "Wire", group: "runtime" },
+  { id: "permissions", label: "权限矩阵", kicker: "ACL", group: "runtime" },
+  { id: "failure", label: "失败实验室", kicker: "Lab", group: "runtime" },
   { id: "families", label: "五族", kicker: "Chips", group: "parts" },
   { id: "entry", label: "入口", kicker: "AiMark", group: "parts" },
   { id: "sources", label: "来源", kicker: "Ground", group: "parts" },

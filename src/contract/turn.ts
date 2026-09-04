@@ -417,6 +417,10 @@ export const COPY_LOCK: ReadonlyArray<{
   { slot: "回合态 gate", copy: "等你选", avoid: "等待确认" },
   { slot: "门卡 KindTag", copy: "确认", avoid: "审批" },
   { slot: "发现卡空态", copy: "这一轮没有新的错因", avoid: "没有量化发现" },
+  { slot: "额度不够", copy: "额度不够", avoid: "Quota exceeded / 生成未确认" },
+  { slot: "需要登录后继续", copy: "需要登录后继续", avoid: "Unauthorized / 当失败重试" },
+  { slot: "未能停止", copy: "未能停止", avoid: "已停止生成" },
+  { slot: "未知 widget", copy: "fail-soft 不渲染", avoid: "空白卡" },
 ];
 
 export function copyLock(slot: string): string {
@@ -487,8 +491,8 @@ export const DOT_STATES = [
   {
     id: "error",
     title: "未确认",
-    from: "provider_unknown / failed / stop_failed",
-    take: "err X · 不当成功、不当普通停止",
+    from: "provider_unknown / failed",
+    take: "err X · 不当成功、不当普通停止。stop_failed 同色，文案「未能停止」",
     color: "err",
     copy: "",
     status: "error",
@@ -517,7 +521,8 @@ export const DOT_MACHINE: ReadonlyArray<{
   { state: "recovering / exhausted / replay_gap", user: "条「恢复中」", dots: "recover · warn" },
   { state: "stop_pending", user: "条「正在停止」", dots: "halt · warn 冻" },
   { state: "cancelled", user: "气泡「已停止生成」", dots: "stop · muted" },
-  { state: "provider_unknown / failed / stop_failed", user: "条「生成未确认」", dots: "error · err X" },
+  { state: "provider_unknown / failed", user: "条「生成未确认」", dots: "error · err X" },
+  { state: "stop_failed", user: "条「未能停止」", dots: "error · err X · 不是 cancelled" },
   { state: "completed", user: "「已完成」", dots: "done · ok 绿" },
   { state: "auth_required / status_reconcile", user: "只读条", dots: "recover · 不另造" },
 ];

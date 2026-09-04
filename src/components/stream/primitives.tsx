@@ -187,7 +187,7 @@ export function TurnStatusLine({
     <>
       <span className="sk-status-lead">
         <Dots state={state} />
-        {status ? <StatusBadge kind={status} /> : copy ? <span className="sk-status-phrase">{copy}</span> : null}
+        {copy ? <span className="sk-status-phrase">{copy}</span> : status ? <StatusBadge kind={status} /> : null}
         {canFold ? (
           <span className="sk-status-chev" aria-hidden="true">
             {open ? <ChevronDown size={12} /> : <ChevronRight size={12} />}

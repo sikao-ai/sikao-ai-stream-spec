@@ -13,7 +13,12 @@ const player = readFileSync(new URL("../src/player/ScenarioPlayer.tsx", import.m
 const renderer = readFileSync(new URL("../src/renderer/TurnRenderer.tsx", import.meta.url), "utf8");
 const gallery = readFileSync(new URL("../src/components/gallery.tsx", import.meta.url), "utf8");
 const specApp = readFileSync(new URL("../src/components/spec-app.tsx", import.meta.url), "utf8");
+const specRuntime = readFileSync(new URL("../src/components/spec-runtime.tsx", import.meta.url), "utf8");
 const labs = readFileSync(new URL("../src/labs/live-model-demo/AiDock.tsx", import.meta.url), "utf8");
+const lifecycle = readFileSync(new URL("../src/contract/lifecycle.ts", import.meta.url), "utf8");
+const frames = readFileSync(new URL("../src/contract/frames.ts", import.meta.url), "utf8");
+const permissions = readFileSync(new URL("../src/contract/permissions.ts", import.meta.url), "utf8");
+const failures = readFileSync(new URL("../src/contract/failures.ts", import.meta.url), "utf8");
 
 const REQUIRED = [
   "short",
@@ -32,6 +37,13 @@ const REQUIRED = [
   "teach-aid",
   "cause-act1",
   "essay",
+  "offline",
+  "duplicate_seq",
+  "partial_fail",
+  "stop_failed",
+  "quota",
+  "auth_expired",
+  "unknown_widget",
 ];
 
 test("cite contract locks 1070 float and after-footprint list", () => {
@@ -93,6 +105,9 @@ test("turn contract exports the copyable tree", () => {
   assert.match(turn, /export const ENTER_MOTION/);
   assert.match(turn, /scale \.98/);
   assert.match(turn, /480ms/);
+  assert.match(turn, /state: "stop_failed"/);
+  assert.match(turn, /条「未能停止」/);
+  assert.doesNotMatch(turn, /provider_unknown \/ failed \/ stop_failed/);
 });
 
 test("product widget frames and misalign playbook", () => {
@@ -157,6 +172,7 @@ test("scene fixtures name hosts and exception states", () => {
   assert.match(scenes, /id: "stop_pending"/);
   assert.match(scenes, /id: "cancelled"/);
   assert.match(scenes, /id: "provider_unknown"/);
+  assert.match(scenes, /id: "stop_failed"/);
   assert.match(scenes, /id: "replay_gap"/);
   assert.match(scenes, /host: "Review Path A"/);
   assert.match(scenes, /请在桌面端使用/);
@@ -183,8 +199,79 @@ test("canonical pages do not mount live model demo", () => {
   assert.doesNotMatch(specApp, /from "@\/labs\/live-model-demo/);
   assert.doesNotMatch(specApp, /askSikao/);
   assert.doesNotMatch(specApp, /sikao-ai-dock-chats/);
+  assert.doesNotMatch(specRuntime, /from "@\/labs\/live-model-demo/);
   assert.match(labs, /data-demo-only="true"/);
   assert.match(labs, /askSikao/);
+});
+
+test("runtime chapters project Conversation/Turn/Run/Effect/Artifact", () => {
+  for (const noun of ["conversation", "turn", "run", "effect", "artifact"]) {
+    assert.match(lifecycle, new RegExp(`id: "${noun}"`));
+  }
+  assert.match(lifecycle, /禁止开第二 run/);
+  assert.match(specApp, /LifecyclePage/);
+  assert.match(specRuntime, /Agent 生命周期/);
+});
+
+test("frame map pins engine tags and widget fail-soft", () => {
+  for (const tag of [
+    "action",
+    "delta",
+    "discard",
+    "done",
+    "error",
+    "hitl_interrupt",
+    "op",
+    "phase",
+    "proposal",
+    "reasoning",
+    "surface",
+    "suspended",
+    "terminal",
+    "tool",
+    "widget",
+  ]) {
+    assert.match(frames, new RegExp(`"${tag}"`));
+    assert.match(frames, new RegExp(`id: "${tag}"`));
+  }
+  assert.match(frames, /未知 kind fail-soft/);
+  assert.match(specRuntime, /真实 Frame 对照/);
+});
+
+test("permission matrix names hosts and HITL writes", () => {
+  for (const host of ["Home dock", "Teach / Tutor", "Guided 申论", "复盘教师 Path A", "计划"]) {
+    assert.match(permissions, new RegExp(host.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
+  assert.match(permissions, /propose_plan_changes/);
+  assert.match(permissions, /add_to_note/);
+  assert.match(permissions, /活时门/);
+  assert.match(permissions, /390 只留桌面门/);
+  assert.match(specRuntime, /Permission Matrix/);
+});
+
+test("failure lab covers the eight cases", () => {
+  for (const id of [
+    "offline",
+    "duplicate_seq",
+    "replay_gap",
+    "partial_fail",
+    "stop_failed",
+    "quota",
+    "auth_expired",
+    "unknown_widget",
+  ]) {
+    assert.match(failures, new RegExp(`id: "${id}"`));
+  }
+  assert.match(failures, /重开第二 run/);
+  assert.match(specRuntime, /Failure & Recovery Lab/);
+  assert.match(specRuntime, /key=\{current\.scenario\}/);
+  assert.match(player, /ids\?: readonly string\[]/);
+  assert.match(player, /ids\?\.length \? null/);
+  assert.match(fixtures, /id: "auth_expired"/);
+  assert.doesNotMatch(
+    fixtures.slice(fixtures.indexOf('id: "auth_expired"'), fixtures.indexOf('id: "unknown_widget"')),
+    /error: \{/,
+  );
 });
 
 test("manifest pins SHA and versions", () => {

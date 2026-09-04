@@ -51,4 +51,25 @@ test("sibling sikao origin/main matches the pin when present", () => {
   for (const needle of ["1067.w0.4", "1066.v4", "到你了", "你记过", "查看笔记", "正在想", "已完成", "已停止生成"]) {
     assert.ok(doc.includes(needle), `sikao contract missing locked string: ${needle}`);
   }
+
+  const framesSrc = readFileSync(path.join(root, "src/contract/frames.ts"), "utf8");
+  const enginePath = path.join(repo, "contracts/engine-frame-tags.json");
+  if (existsSync(enginePath)) {
+    const engine = JSON.parse(readFileSync(enginePath, "utf8"));
+    assert.ok(Array.isArray(engine), "engine-frame-tags.json should be an array");
+    for (const tag of engine) {
+      assert.ok(
+        framesSrc.includes(`"${tag}"`),
+        `prototype FRAME tags missing sikao engine tag: ${tag}`,
+      );
+    }
+  }
+  const widgetPath = path.join(repo, "contracts/ai-widget-frames.json");
+  if (existsSync(widgetPath)) {
+    const widgetsSrc = readFileSync(path.join(root, "src/contract/widgets.ts"), "utf8");
+    const gold = JSON.parse(readFileSync(widgetPath, "utf8"));
+    for (const kind of Object.keys(gold.widgets ?? {})) {
+      assert.ok(widgetsSrc.includes(`id: "${kind}"`), `prototype missing widget kind ${kind}`);
+    }
+  }
 });

@@ -314,6 +314,9 @@ body {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .spec-nav-group {
@@ -525,6 +528,24 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: var(--space-3);
+}
+
+.spec-life-chain {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.spec-life-chain .spec-card {
+  min-width: 0;
+}
+
+.spec-life-chain .spec-card strong {
+  font-size: var(--font-body);
+}
+
+.spec-table tr[data-active="true"] td {
+  background: var(--color-ai-soft);
 }
 
 .spec-card {
@@ -4828,6 +4849,10 @@ button.sk-status-line {
   }
 
   .spec-gallery {
+    grid-template-columns: 1fr;
+  }
+
+  .spec-life-chain {
     grid-template-columns: 1fr;
   }
 

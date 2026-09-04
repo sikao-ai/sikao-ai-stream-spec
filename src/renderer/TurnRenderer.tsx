@@ -5,6 +5,7 @@ import { LOOKBACK_KICKER } from "@/lib/spec-catalog";
 import { getFrame, getScenario, overlayFrame } from "@/player/fixtures";
 import { visibleSlotIds } from "@/player/slot-order";
 import type { TurnFrame, WidgetSpec } from "@/player/fixtures/types";
+import { ProductWidget } from "@/renderer/ProductWidget";
 import {
   AnswerBody,
   ContextCard,
@@ -116,7 +117,9 @@ export function TurnRenderer({
                     />
                   </div>
                 ) : null}
-                {frame.phase === "error" && frame.error ? <ErrorBand title={frame.error.title} /> : null}
+                {frame.phase === "error" && frame.error ? (
+                  <ErrorBand title={frame.error.title} action={frame.error.action} />
+                ) : null}
               </TurnBlock>
             );
           }
@@ -187,6 +190,10 @@ function WidgetStack({ widgets }: { readonly widgets: readonly WidgetSpec[] }) {
               <FillBtn>{w.label}</FillBtn>
             </div>
           );
+        }
+        if (w.type === "product") {
+          if (w.kind === "unknown") return null;
+          return <ProductWidget key={i} kind={w.kind} folded={w.folded !== false} />;
         }
         return null;
       })}

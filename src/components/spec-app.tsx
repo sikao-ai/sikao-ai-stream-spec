@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
+  Braces,
   Compass,
+  GitBranch,
+  KeyRound,
   Layers,
   LayoutGrid,
   MessageSquare,
@@ -11,6 +14,7 @@ import {
   Sparkles,
   Sun,
   Tag,
+  Unplug,
   Quote,
 } from "lucide-react";
 import { hydrateTheme, useAppStore, type DensityId, type SectionId } from "@/lib/app-store";
@@ -70,6 +74,7 @@ import { PromptBarSpecimen } from "@/renderer/PromptBarSpecimen";
 import { SourceStateTable } from "@/renderer/ContextCardSpecimen";
 import { DockShell } from "@/renderer/DockShell";
 import { Gallery } from "@/components/gallery";
+import { FailureLabPage, FramesPage, LifecyclePage, PermissionsPage } from "@/components/spec-runtime";
 import { SpecimenRow } from "@/components/specimen-row";
 import { GuidedThreeTrack, ReviewPathADesktop, ReviewPathAMobileGate } from "@/renderer/HostSpecimen";
 import { TurnRenderer } from "@/renderer/TurnRenderer";
@@ -107,6 +112,10 @@ const ICONS: Record<SectionId, ReactNode> = {
   tokens: <Palette />,
   playground: <Play />,
   dock: <MessageSquare />,
+  lifecycle: <GitBranch />,
+  frames: <Braces />,
+  permissions: <KeyRound />,
+  failure: <Unplug />,
 };
 
 function GlassesMark() {
@@ -1617,6 +1626,14 @@ function SectionView({ id }: { readonly id: SectionId }) {
       return <Playground />;
     case "dock":
       return <DockPage />;
+    case "lifecycle":
+      return <LifecyclePage />;
+    case "frames":
+      return <FramesPage />;
+    case "permissions":
+      return <PermissionsPage />;
+    case "failure":
+      return <FailureLabPage />;
     default:
       return <Overview />;
   }
@@ -1672,6 +1689,7 @@ export function SpecApp() {
                   key={s.id}
                   type="button"
                   className="spec-nav-item"
+                  data-nav={s.id}
                   data-active={s.id === section}
                   onClick={() => setSection(s.id)}
                 >
@@ -1687,7 +1705,7 @@ export function SpecApp() {
             {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
             {theme === "dark" ? "浅色" : "深色"}
           </button>
-          <p className="spec-meta">回合渲染器 · 组件 · 规则</p>
+          <p className="spec-meta">回合渲染器 · 运行时 · 规则</p>
           <a className="spec-meta spec-labs-link" href="/labs/live-model-demo">
             demo-only 实验室
           </a>
@@ -1707,7 +1725,7 @@ export function SpecApp() {
           </button>
         </div>
       </header>
-      <main className="spec-main">
+      <main className="spec-main" data-section={current.id}>
         <SectionView id={current.id} />
       </main>
       <nav className="mobile-tabs" aria-label="移动章节">

@@ -1,3 +1,4 @@
+import type { ProductWidgetId } from "@/contract/widgets";
 import type { DensityId, DotsState, ProseParagraph, StreamPhase, TurnView } from "@/contract/turn";
 
 export type OpKind = "thought" | "search" | "read" | "write" | "code" | "tool";
@@ -71,12 +72,14 @@ export type WidgetSpec =
   | { readonly type: "insight"; readonly items: readonly InsightSpec[]; readonly empty?: boolean }
   | { readonly type: "filter"; readonly rows: readonly FilterRow[]; readonly empty?: boolean }
   | { readonly type: "prompt-list"; readonly items: readonly string[] }
-  | { readonly type: "nav-cta"; readonly label: string };
+  | { readonly type: "nav-cta"; readonly label: string }
+  | { readonly type: "product"; readonly kind: ProductWidgetId | "unknown"; readonly folded?: boolean };
 
 export type TurnFrame = {
   readonly id: string;
   readonly phase: StreamPhase;
   readonly density: DensityId;
+  readonly seq?: number;
   readonly user: string;
   readonly stem?: string;
   readonly stemAid?: StemAid;
@@ -107,7 +110,7 @@ export type TurnFrame = {
     readonly sourcesOpen?: boolean;
   };
   readonly sources?: readonly SourceCard[];
-  readonly error?: { readonly title: string };
+  readonly error?: { readonly title: string; readonly action?: string };
 };
 
 export type Scenario = {

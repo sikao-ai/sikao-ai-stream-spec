@@ -4,3 +4,7 @@ export * from "./scenes";
 export * from "./manifest";
 export * from "./widgets";
 export * from "./cite";
+export * from "./lifecycle";
+export * from "./frames";
+export * from "./permissions";
+export * from "./failures";

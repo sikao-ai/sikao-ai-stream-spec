@@ -12,7 +12,11 @@ export type SectionId =
   | "rules"
   | "tokens"
   | "playground"
-  | "dock";
+  | "dock"
+  | "lifecycle"
+  | "frames"
+  | "permissions"
+  | "failure";
 
 export type DockPlace = ShellDockPlace;
 export type ThemeMode = "light" | "dark";
