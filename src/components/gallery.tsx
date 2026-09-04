@@ -32,16 +32,15 @@ import {
   FOLLOWUPS,
   INSIGHTS,
   LOOKBACK_SOURCE,
-  SAP_SOURCES,
 } from "@/player/fixtures/content";
-import { copyLock, ENTER_MOTION, RENDERER_PACK, type DensityId, type DotsState } from "@/contract/turn";
+import { copyLock, ENTER_MOTION, RENDERER_PACK, TURN_RHYTHM_ROWS, type DensityId, type DotsState } from "@/contract/turn";
+import { CITE_ROWS, CITE_STATES } from "@/contract/cite";
+import { CiteSpecimen, type CiteMode } from "@/renderer/CiteSpecimen";
 import { HITL_APPROVE_STATES, HITL_REC_STATES } from "@/contract/scenes";
 import type { ApproveSpecimen, RecSpecimen } from "@/components/stream/primitives";
 import {
   ActionChip,
   AnswerFootprint,
-  AssistantProse,
-  Cite,
   ContextCard,
   EntityChip,
   ErrorBand,
@@ -52,6 +51,7 @@ import {
   KindTag,
   MethodCard,
   OpRow,
+  FollowupFold,
   PromptList,
   ProposalCard,
   RecommendCard,
@@ -64,7 +64,7 @@ import {
 export function Gallery() {
   const [dots, setDots] = useState<DotsState>("wait");
   const [bar, setBar] = useState<PromptBarLayout>("locator");
-  const [prose, setProse] = useState("settled");
+  const [prose, setProse] = useState<CiteMode>("open");
   const [density, setDensity] = useState<DensityId>("teach");
   const [gate, setGate] = useState<ApproveSpecimen>("idle");
   const [rec, setRec] = useState<RecSpecimen>("fold");
@@ -193,38 +193,35 @@ export function Gallery() {
       <SpecimenRow
         n="03"
         title="正文 + 角标"
-        lede="通栏无框。出字时无角标。字出齐后点 [n] 在角标旁浮出。"
-        px="正文 14/1.75/400 · 段间距 8 · 角标 11 · 浮出卡不超出 12px 边"
-        xy={{ x: "正文左 = Dots 左", y: "角标与所在行 baseline 对齐" }}
-        forbid="assistant bubble；结果页扫卡塞进气泡；streaming 就出 [n]"
-        checks={["streaming 无角标", "settled 才出 [n]", "同时只开一张浮出", "Esc / 再点关闭"]}
-        tabs={[
-          { id: "streaming", label: "出字" },
-          { id: "settled", label: "落定" },
+        lede="SIK-1070。点 [n] 是浮层 popover，叠在脚印上，不把 footer 顶下去。列表才在脚印下占流。"
+        px="正文 14/1.75 · 角标 16 槽 10/700 略抬 · 浮层 360 · 进场 160ms · 脚印位置开合不变"
+        xy={{ x: "正文左 = Dots 左。浮层贴角标，不居中整列", y: "角标与行 baseline 对齐。卡叠在脚印之上，脚印不让位" }}
+        forbid="streaming 出 [n]；展开推进 footer；结果页扫卡塞进气泡；favicon 条；列表排在 prose 前"
+        checks={[
+          "streaming 无角标",
+          "settled 才出 [n]",
+          "浮层不占文档流",
+          "开合时脚印位置不变",
+          "同时只开一张",
+          "Esc / 再点 / 点外关",
+          "左右切 n",
+          "失效角标仍在，卡写「这条已经没了」",
+          "来源列表只在脚印下占流",
         ]}
+        tabs={CITE_STATES.map((s) => ({
+          id: s.id,
+          label: ({ streaming: "出字", settled: "落定", open: "浮出", invalid: "失效", none: "无引用", list: "脚印列表" } as const)[s.id],
+        }))}
         tab={prose}
-        onTab={setProse}
+        onTab={(id) => setProse(id as CiteMode)}
         standard={[
-          { k: "slot", v: "prose" },
-          { k: "streaming", v: "角标不出现，caret 沿用现网 StreamingProse" },
-          { k: "settled", v: "inline [n]，同时只开一张" },
+          { k: "see", v: CITE_STATES.find((s) => s.id === prose)?.see ?? "" },
+          { k: "rule", v: CITE_STATES.find((s) => s.id === prose)?.rule ?? "" },
+          ...CITE_ROWS.map((row) => ({ k: row.slot, v: `${row.do} / 禁止 ${row.dont}` })),
         ]}
-        code={
-          prose === "streaming"
-            ? `<AssistantProse streaming>空里要的是还没成形的苗头。</AssistantProse>`
-            : `<AssistantProse>语气偏硬<Cite n={1} />。用「抑制」更贴<Cite n={2} />。</AssistantProse>`
-        }
+        code={`<CiteSpecimen mode="${prose}" />`}
       >
-        {prose === "streaming" ? (
-          <AssistantProse streaming>空里要的是还没成形的苗头，用「抑制」更贴搭配。</AssistantProse>
-        ) : (
-          <AssistantProse>
-            「遏制」的对象通常是已经起来的势头，语气偏硬
-            <Cite n={1} />
-            。空里要的是还没成形的苗头，用「抑制」更贴搭配
-            <Cite n={2} />。
-          </AssistantProse>
-        )}
+        <CiteSpecimen mode={prose} />
       </SpecimenRow>
 
       <SpecimenRow
@@ -324,42 +321,38 @@ export function Gallery() {
       <SpecimenRow
         n="07"
         title="Context Card"
-        lede="对话 [n] 旁浮出；你记过是已有笔记。失效卡留着，写「这条已经没了」。"
-        px="kicker 11 · 标题 14 · 浮出 max 宽度列内 · 窄屏右对齐，距边 ≥12"
-        xy={{ x: "浮出贴角标，不居中整列", y: "卡顶对齐角标行" }}
-        forbid="可回看；网页 favicon 引用条塞进气泡；失效就从布局消失"
-        checks={["你记过 ≠ 本轮 [n]", "同时只开一张", "失效文案「这条已经没了」", "0 条不渲染卡", "卡进场 280ms；角标浮出 160ms"]}
+        lede="你记过是已有笔记，不是本轮 [n]。本轮引用浮出见 03。失效卡留着，写「这条已经没了」。"
+        px="kicker 11 · 标题 13/500 · 字数 11 · 内边距 16 · 半径 12"
+        xy={{ x: "编号/笔记标 16 列左齐正文", y: "头一行垂直中心" }}
+        forbid="可回看；网页 favicon 引用条塞进气泡；失效就从布局消失；把你记过画成本轮 [n]"
+        checks={["你记过 ≠ 本轮 [n]", "0 条不渲染卡", "失效文案「这条已经没了」", "卡进场 280ms"]}
         tabs={[
           { id: "lookback", label: "你记过" },
-          { id: "cite", label: "引用 [n]" },
           { id: "invalid", label: "失效" },
         ]}
         tab={ctx}
         onTab={setCtx}
         standard={[
-          { k: "slot", v: ctx === "lookback" ? "lookback" : "source-list / 浮出" },
-          { k: "copy", v: ctx === "invalid" ? "这条已经没了" : ctx === "lookback" ? "你记过" : "角标 [n]" },
-          { k: "要", v: "同时只开一张。窄屏右对齐不超出 12px 边。" },
-          { k: "不要", v: "可回看；网页 favicon 引用条塞进气泡" },
+          { k: "slot", v: "lookback" },
+          { k: "copy", v: ctx === "invalid" ? "这条已经没了" : "你记过" },
+          { k: "要", v: "落定 0–2 张。编号关。不是本轮 [n]。" },
+          { k: "不要", v: "可回看；画成本轮角标" },
         ]}
         code={
-          ctx === "lookback"
-            ? `<ContextCard item={LOOKBACK_SOURCE} numbered={false} />`
-            : ctx === "invalid"
-              ? `<ContextCard item={SAP_SOURCES[0]} defaultOpen invalid />`
-              : `<ContextCard item={SAP_SOURCES[0]} numbered defaultOpen />`
+          ctx === "invalid"
+            ? `<ContextCard item={LOOKBACK_SOURCE} numbered={false} defaultOpen invalid />`
+            : `<ContextCard item={LOOKBACK_SOURCE} numbered={false} />`
         }
       >
-        {ctx === "lookback" ? (
-          <div className="sk-lookback">
-            <span className="sk-stem-kicker">你记过</span>
-            <ContextCard item={LOOKBACK_SOURCE} numbered={false} />
-          </div>
-        ) : ctx === "invalid" ? (
-          <ContextCard item={SAP_SOURCES[0]} numbered defaultOpen invalid />
-        ) : (
-          <ContextCard item={SAP_SOURCES[0]} numbered defaultOpen />
-        )}
+        <div className="sk-lookback">
+          <span className="sk-lookback-kicker">你记过</span>
+          <ContextCard
+            item={LOOKBACK_SOURCE}
+            numbered={false}
+            defaultOpen
+            invalid={ctx === "invalid"}
+          />
+        </div>
       </SpecimenRow>
 
       <SpecimenRow
@@ -427,8 +420,8 @@ export function Gallery() {
       <SpecimenRow
         n="10"
         title="方法卡 / 到你了"
-        lede="讲题流落定。默认折叠。SIK-1086 COPY_LOCK：到你了 · 下一空自己选。"
-        px="卡头 16/600 · KindTag 11 · 折叠只露一行 · 脚印在两张卡之后"
+        lede="独立标本：折叠 hug 沉底。流内（15）透明底 16 列，和下一问同一行皮。"
+        px="折叠 hug 一行 高 28 宽 ≤36ch · KindTag 10 · 标题 13 · 展开才通栏 12 内边距"
         xy={{ x: "KindTag 与标题同一行", y: "KindTag 与标题垂直中心" }}
         forbid="把「到你了」当标题；默认展开抢正文；挂在脚印下方"
         checks={["density=teach 且 settled 才出", "默认折叠", "标题锁「下一空自己选」", "KindTag 锁「方法」「到你了」", "展开用 200ms grid-rows，不要 display:none 硬切"]}
@@ -487,14 +480,14 @@ export function Gallery() {
         code={
           foot === "plain"
             ? `<AnswerFootprint sourceCount={0} />`
-            : `<AnswerFootprint sourceCount={2} sourcesOn={false} onSources={() => {}} />`
+            : `<CiteSpecimen mode="list" />`
         }
       >
-        <AnswerFootprint
-          sourceCount={foot === "plain" ? 0 : 2}
-          sourcesOn={false}
-          onSources={foot === "plain" ? undefined : () => undefined}
-        />
+        {foot === "plain" ? (
+          <AnswerFootprint sourceCount={0} />
+        ) : (
+          <CiteSpecimen mode="list" />
+        )}
       </SpecimenRow>
 
       <SpecimenRow
@@ -566,11 +559,14 @@ export function Gallery() {
       <SpecimenRow
         n="15"
         title="回合组装"
-        lede="用户浅泡、助手非泡。四密加减块，不换皮。"
-        px="主列 max 720 居中 · 用户泡 max 82% pad 8 12 半径 12/12/5/12"
-        xy={{ x: "用户泡右对齐；助手通栏", y: "槽位严格按 TURN_SLOTS 顺序" }}
-        forbid="InFlight/MessageList 拼盘；各宿主自绘过程条；按密度换色"
-        checks={["short 无过程则零 chrome", "teach 才有 stem", "gate live 是 Approval 不是专家栈", "live/persisted/replay 槽序一致"]}
+        lede="题面是引用块，你记过是笔记卡，方法/到你了/下一问是透明底折叠行。夹具播放在回合下方，不进流。"
+        px="stem→Dots 12 · Dots→正文 16 · 正文→你记过 16 · 卡组 12 · 折叠 2 · 脚印 16"
+        xy={{
+          x: "Dots / 方法 / 到你了 / 下一问 同一 16 列；题面与你记过卡左齐正文，卡内 ico 随 inset",
+          y: "每行 ico / 文案 / chevron 垂直中心。用户泡单独一行在上。",
+        }}
+        forbid="InFlight/MessageList 拼盘；一回合堆多张数据卡；各宿主自绘过程条；按密度换色"
+        checks={["short 无过程则零 chrome", "teach 才有 stem", "每回合最多 1 张数据卡", "gate live 是 Approval 不是专家栈", "live/persisted/replay 槽序一致"]}
         tabs={[
           { id: "short", label: "短答" },
           { id: "tool", label: "工具" },
@@ -580,12 +576,15 @@ export function Gallery() {
         tab={density}
         onTab={(id) => setDensity(id as DensityId)}
         standard={[
-          { k: "order", v: "用户泡 → 题面 → 回合态 → 专家栈|Approval → 正文 → 控件 → 脚印" },
-          { k: "phase", v: "标本默认 settled；门卡看 live 才有确认门" },
+          { k: "order", v: "用户泡 → 题面 → Dots → 正文 → 你记过 → 折叠组 → 脚印" },
+          ...TURN_RHYTHM_ROWS.map((row) => ({
+            k: `${row.from}→${row.to}`,
+            v: `${row.gap}px · ${row.why}`,
+          })),
         ]}
-        code={`<DensityStream density="${density}" phase="${density === "gate" ? "live" : "settled"}" />`}
+        code={`<DensityStream density="${density}" playable />`}
       >
-        <DensityStream density={density} phase={density === "gate" ? "live" : "settled"} />
+        <DensityStream density={density} playable />
       </SpecimenRow>
 
       <SpecimenRow
@@ -660,9 +659,9 @@ export function Gallery() {
         xy={{ x: "只在 Y 上移入，不左右晃", y: "scale .98 → 1，不要 overshoot" }}
         forbid="弹跳 bounce；弹簧 spring；扫光 shimmer 进场；自造时长"
         checks={[
-          "确认门/推荐/发现/筛选/方法/到你了/Context 都走 sk-card-enter",
+          "确认门/推荐/发现/筛选/Context 走 sk-card-enter；流内方法/到你了/下一问透明行不 scale",
           "widgets 第 n 张 delay n×60ms",
-          "方法/到你了展开是 grid-rows 200ms，不是 display 切换",
+          "方法/到你了/下一问展开是 grid-rows 200ms，不是 display 切换",
           "prefers-reduced-motion 全关",
         ]}
         tabs={[
@@ -689,16 +688,18 @@ grid-template-rows: 0fr → 1fr; transition: 200ms;`}
               <ProposalCard blocking specimen="idle" title="写入笔记前先确认" reason="接下来会把这组近义记进今日计划。" />
             ) : motion === "lookback" ? (
               <div className="sk-lookback">
-                <span className="sk-stem-kicker">你记过</span>
+                <span className="sk-lookback-kicker">你记过</span>
                 <ContextCard item={LOOKBACK_SOURCE} numbered={false} />
               </div>
             ) : (
-              <div className="sk-turn-widgets">
-                <InsightCards items={[INSIGHTS[0]]} />
-                <MethodCard title="先看宾语，再看语气硬度" reason="「遏制」管已起的势头；空里要的是还没成形的苗头。" />
-                <YouTryGate title="下一空自己选" items={["抑制萌芽", "遏制势头", "遏止蔓延"]} />
-                <PromptList items={[...FOLLOWUPS]} />
-                <AnswerFootprint sourceCount={2} onSources={() => undefined} />
+              <div className="sk-turn-col">
+                <div className="sk-turn-widgets">
+                  <InsightCards items={[INSIGHTS[0]]} />
+                  <MethodCard title="先看宾语，再看语气硬度" reason="「遏制」管已起的势头；空里要的是还没成形的苗头。" />
+                  <YouTryGate title="下一空自己选" items={["抑制萌芽", "遏制势头", "遏止蔓延"]} />
+                  <FollowupFold items={[...FOLLOWUPS]} />
+                  <AnswerFootprint sourceCount={2} onSources={() => undefined} />
+                </div>
               </div>
             )}
           </div>

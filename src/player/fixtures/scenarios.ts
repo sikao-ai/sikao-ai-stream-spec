@@ -25,8 +25,7 @@ const VIEWS = ["live", "persisted", "replay"] as const;
 
 function toolWidgets(): TurnFrame["widgets"] {
   return [
-    { type: "insight", items: INSIGHTS },
-    { type: "filter", rows: FILTER_ROWS },
+    { type: "insight", items: INSIGHTS.slice(0, 1) },
     { type: "prompt-list", items: FOLLOWUPS },
   ];
 }

@@ -86,7 +86,7 @@ export const RENDERER_PACK: ReadonlyArray<{
 }> = [
   { n: "01", id: "status", name: "回合态 Dots", ticket: "1045 / 1086", must: "wait/tool/stream/recover/halt/done/stop/error。几何 4px/gap 2px/槽 16×16。elapsed 在行右。" },
   { n: "02", id: "expert-rail", name: "专家栈", ticket: "1068", must: "仅 live 且非 short/gate。lucide 一行，新芯片从右顶走。" },
-  { n: "03", id: "prose", name: "正文 + 角标", ticket: "1068 / 1070", must: "通栏无框。streaming 无角标。settled 才出 [n]。" },
+  { n: "03", id: "prose", name: "正文 + 角标", ticket: "1068 / 1070", must: "streaming 无 [n]。settled 才出。点 [n] 浮层 popover，不占流、不顶脚印。同时一张。失效卡写「这条已经没了」。列表只在脚印下。" },
   { n: "04", id: "step-log", name: "多步骤", ticket: "1068 / 1086", must: "settled|stop 折叠。不对思考/工具打绿勾。" },
   { n: "05", id: "approval", name: "确认门", ticket: "1068 / 1086", must: "idle/picked/submit/ok/skip/fail/invalid/reopen。活时挡住正文。" },
   { n: "06", id: "recommend", name: "推荐卡", ticket: "1068", must: "fold/open/accepting/written/skipped/fail。落定不挡下一问。" },
@@ -98,7 +98,7 @@ export const RENDERER_PACK: ReadonlyArray<{
   { n: "12", id: "footprint", name: "脚印", ticket: "1068", must: "有帮助/没帮助/复制/重新生成/回放/来源 N。仅 settled|stop 且有正文。" },
   { n: "13", id: "error", name: "ErrorBand", ticket: "1040 / 1032", must: "生成未确认 / 这一轮没有写完。已出字只读。不当成功。" },
   { n: "14", id: "composer", name: "Prompt Bar", ticket: "1072", must: "芯片行：BAR_STATUS（正在看 AI 蓝呼吸点）+ @来源。加 kind 不另造皮。不进顶栏。" },
-  { n: "15", id: "turn", name: "回合组装", ticket: "1068", must: "同一 Turn 树。四密加减块，不换皮。" },
+  { n: "15", id: "turn", name: "回合组装", ticket: "1068", must: "同一 Turn 树。间距只准 TURN_RHYTHM 四档。题面是引用块，你记过是笔记卡。每回合最多 1 张数据卡。" },
   { n: "16", id: "entry", name: "入口 AiMark", ticket: "421 / 1072", must: "32/36/44。无可见「AI」字。" },
   { n: "17", id: "families", name: "五族", ticket: "1066", must: "PromptList/StatusTag/ActionChip/KindTag/EntityChip 职责不许串。" },
   { n: "18", id: "motion", name: "出现动画", ticket: "1068 / 1086", must: "卡片 280ms y12 scale.98；widgets 错开 60ms；确认门点选 480ms；折叠 200ms；reduced-motion 全关。" },
@@ -126,8 +126,8 @@ export const ENTER_MOTION: ReadonlyArray<{
   { id: "user", dur: "180ms", ease: "cubic-bezier(0.15, 0.85, 0.25, 1)", from: "opacity .4 → 1；y 52 → 0", when: "用户泡进场" },
   { id: "expert", dur: "380ms", ease: "var(--ease-out)", from: "opacity 0；y 10 → 0", when: "专家芯片进栈" },
   { id: "chip-slide", dur: "480ms", ease: "var(--ease-out)", from: "track 平移一个 stride", when: "新芯片从右顶走" },
-  { id: "card", dur: "280ms", ease: "var(--ease-out)", from: "opacity 0；y 12；scale .98", when: "确认门 / 推荐 / 发现 / 筛选 / 方法 / 到你了 / Context 首次出现" },
-  { id: "stagger", dur: "60ms × n", ease: "delay only", from: "第 n 张 delay n*60ms", when: "widgets 栈：方法 → 到你了 → PromptList → 脚印" },
+  { id: "card", dur: "280ms", ease: "var(--ease-out)", from: "opacity 0；y 12；scale .98", when: "确认门 / 推荐 / 发现 / 筛选 / Context 首次出现。方法/到你了只在独立标本走卡片进场；流内是透明行，禁止 scale。" },
+  { id: "stagger", dur: "60ms × n", ease: "delay only", from: "第 n 张 delay n*60ms", when: "widgets 栈：方法 → 到你了 → 下一问 → 脚印。流内折叠行不进场 scale。" },
   { id: "row", dur: "200ms", ease: "var(--ease-out)", from: "opacity 0；y 6", when: "PromptList 行、多步骤行" },
   { id: "cite", dur: "160ms", ease: "var(--ease-out)", from: "opacity 0；y 6", when: "角标旁浮出 Context" },
   { id: "fold", dur: "200ms", ease: "var(--ease-out)", from: "grid-template-rows 0fr → 1fr", when: "方法 / 到你了 / 推荐格子展开" },
@@ -347,6 +347,39 @@ export const LAYOUT_SCALE: ReadonlyArray<{
   { slot: "输入条", desktop: "高 40，圆 12，栏内钮 32", mobile: "行 44 字 14，栏内圆钮视觉 32 · 命中 44", ios: "行 44，圆钮 32 · 命中 44，输入 17，键盘避让" },
 ];
 
+/**
+ * 回合垂直节奏。只准用这四个档，禁止在槽之间发明 10 / 14 / 18。
+ * 16 列与 6 是横向；这里只管块与块的上下气口。
+ */
+export const TURN_RHYTHM = {
+  user: 12,
+  module: 12,
+  section: 16,
+  cluster: 2,
+  prose: 8,
+} as const;
+
+export const TURN_RHYTHM_ROWS: ReadonlyArray<{
+  from: string;
+  to: string;
+  gap: number;
+  why: string;
+}> = [
+  { from: "用户泡", to: "助手列", gap: 12, why: "泡自己一行，不和题面抢同一带。" },
+  { from: "题面 kicker", to: "题面句", gap: 2, why: "引用块之内。" },
+  { from: "题面", to: "Dots", gap: 12, why: "题面是引用块，Dots 才开助手流。" },
+  { from: "Dots", to: "正文", gap: 16, why: "点阵不是正文行首。禁止负 margin 贴上。" },
+  { from: "正文段", to: "下一段", gap: 8, why: "只在 prose 内。" },
+  { from: "正文", to: "你记过", gap: 16, why: "笔记卡不是正文续写。" },
+  { from: "你记过 kicker", to: "笔记卡", gap: 6, why: "标签贴着卡，不是再开一段。" },
+  { from: "你记过", to: "折叠组", gap: 12, why: "卡换成折叠行。" },
+  { from: "数据卡", to: "折叠组", gap: 12, why: "发现/推荐是模块卡，不是折叠行。" },
+  { from: "推荐卡", to: "导航 CTA", gap: 12, why: "炭黑钮跟卡，不和折叠行挤 2。" },
+  { from: "方法", to: "到你了", gap: 2, why: "同一组折叠行。" },
+  { from: "到你了", to: "下一问", gap: 2, why: "同一组折叠行。" },
+  { from: "折叠组", to: "脚印", gap: 16, why: "脚印是回合收口。" },
+];
+
 export const ALIGN_RULES: ReadonlyArray<{
   slot: string;
   x: string;
@@ -359,6 +392,10 @@ export const ALIGN_RULES: ReadonlyArray<{
   { slot: "发现卡", x: "KindTag / 标题 / 数字 / 图 / CTA 左齐", y: "KindTag 与翻页中心；数字与单位 baseline" },
   { slot: "推荐卡", x: "KindTag 与问句同一行；主建议与推荐度两端", y: "KindTag 与问句中心；推荐度与标题中心" },
   { slot: "脚印", x: "图标行左齐正文；按钮等距", y: "图标垂直中心；来源数字与图标中心" },
+  { slot: "题面", x: "块左 = 正文左（列缘），不是 16 列空槽", y: "kicker 上、句下，块内 gap 2" },
+  { slot: "你记过", x: "卡左 = 正文左；卡内笔记标 16", y: "kicker 与卡 gap 6；头一行中心" },
+  { slot: "方法/到你了", x: "lucide 16 = Dots；KindTag = 已完成左。流内透明底通栏；独立标本才 hug 沉底。", y: "头行折叠前后同一 28px / 标题 13。只换 chevron 方向。" },
+  { slot: "下一问", x: "lucide 16 = Dots；文案 = 已完成左。流内同样透明底，不另造沉底条。", y: "头行折叠前后同一 28px / 标题 13。只换 chevron 方向。" },
 ];
 
 export const COPY_LOCK: ReadonlyArray<{

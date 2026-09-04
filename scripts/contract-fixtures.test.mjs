@@ -33,6 +33,19 @@ const REQUIRED = [
   "essay",
 ];
 
+test("cite contract locks 1070 float and after-footprint list", () => {
+  const cite = readFileSync(new URL("../src/contract/cite.ts", import.meta.url), "utf8");
+  assert.match(cite, /export const CITE_STATES/);
+  assert.match(cite, /id: "streaming"/);
+  assert.match(cite, /id: "open"/);
+  assert.match(cite, /id: "invalid"/);
+  assert.match(cite, /id: "list"/);
+  assert.match(cite, /这条已经没了/);
+  assert.match(cite, /仅 after-footprint/);
+  assert.match(cite, /不顶脚印/);
+  assert.match(cite, /展开推进 footer/);
+});
+
 test("turn contract exports the copyable tree", () => {
   for (const id of [
     "user",
@@ -53,6 +66,16 @@ test("turn contract exports the copyable tree", () => {
   assert.match(turn, /export const TIMING_MATRIX/);
   assert.match(turn, /export const COPY_LOCK/);
   assert.match(turn, /export const ALIGN_RULES/);
+  assert.match(turn, /export const TURN_RHYTHM/);
+  assert.match(turn, /section: 16/);
+  assert.match(turn, /cluster: 2/);
+  assert.match(turn, /禁止负 margin 贴上/);
+  assert.match(turn, /发现\/推荐是模块卡/);
+  assert.match(turn, /流内透明底/);
+  assert.match(turn, /禁止 scale/);
+  assert.match(turn, /头行折叠前后同一 28px/);
+  assert.doesNotMatch(renderer, /导航 CTA · 炭黑/);
+  assert.match(renderer, /spec-turn-play-kicker/);
   assert.match(turn, /正在想/);
   assert.match(turn, /等你选/);
   assert.match(turn, /export const BELOW_ANSWER/);

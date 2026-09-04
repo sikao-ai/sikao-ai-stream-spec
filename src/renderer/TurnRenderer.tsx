@@ -1,3 +1,5 @@
+import { useEffect, useMemo, useState } from "react";
+import { Pause, Play, RotateCcw, StepForward } from "lucide-react";
 import type { TurnView } from "@/contract/turn";
 import { LOOKBACK_KICKER } from "@/lib/spec-catalog";
 import { getFrame, getScenario, overlayFrame } from "@/player/fixtures";
@@ -12,7 +14,7 @@ import {
   FilterTable,
   InsightCards,
   MethodCard,
-  PromptList,
+  FollowupFold,
   ProposalCard,
   RecommendCard,
   StemMark,
@@ -41,28 +43,31 @@ export function TurnRenderer({
   const foldable = Boolean(frame.status.foldable);
   const showStepFold = slots.includes("step-log");
 
+  const userSlot = slots.includes("user") ? (
+    <TurnBlock key="user" kind="user">
+      <div data-turn-slot="user">
+        <UserBubble content={frame.user} />
+      </div>
+    </TurnBlock>
+  ) : null;
+
+  const stemSlot =
+    slots.includes("stem") && frame.stem ? (
+      <TurnBlock key="stem" kind="process">
+        <div data-turn-slot="stem">
+          <StemMark text={frame.stem} aid={frame.stemAid} />
+        </div>
+      </TurnBlock>
+    ) : null;
+
   return (
     <TurnStream>
       <div data-turn-view={view} data-scenario-density={frame.density} data-testid="turn-renderer">
+        {userSlot}
+        <div className="sk-turn-col">
+        {stemSlot}
         {slots.map((id) => {
-          if (id === "user") {
-            return (
-              <TurnBlock key={id} kind="user">
-                <div data-turn-slot="user">
-                  <UserBubble content={frame.user} />
-                </div>
-              </TurnBlock>
-            );
-          }
-          if (id === "stem" && frame.stem) {
-            return (
-              <TurnBlock key={id} kind="process">
-                <div data-turn-slot="stem">
-                  <StemMark text={frame.stem} aid={frame.stemAid} />
-                </div>
-              </TurnBlock>
-            );
-          }
+          if (id === "user" || id === "stem") return null;
           if (id === "status") {
             return (
               <TurnBlock key={id} kind="process">
@@ -132,13 +137,14 @@ export function TurnRenderer({
           extra={
             frame.phase === "settled" && frame.lookback ? (
               <div className="sk-lookback" data-turn-slot="lookback" data-ticket="SIK-1070">
-                <span className="sk-stem-kicker">{LOOKBACK_KICKER}</span>
+                <span className="sk-lookback-kicker">{LOOKBACK_KICKER}</span>
                 <ContextCard item={frame.lookback} numbered={false} invalid={frame.lookback.invalid} />
               </div>
             ) : null
           }
           widgets={frame.phase === "settled" && frame.widgets ? <WidgetStack widgets={frame.widgets} /> : null}
         />
+        </div>
       </div>
     </TurnStream>
   );
@@ -173,13 +179,12 @@ function WidgetStack({ widgets }: { readonly widgets: readonly WidgetSpec[] }) {
           return <FilterTable key={i} rows={w.rows} empty={w.empty} />;
         }
         if (w.type === "prompt-list") {
-          return <PromptList key={i} items={w.items} />;
+          return <FollowupFold key={i} items={w.items} />;
         }
         if (w.type === "nav-cta") {
           return (
             <div key={i} className="sk-nav-cta">
               <FillBtn>{w.label}</FillBtn>
-              <span className="spec-meta">导航 CTA · 炭黑，不是柔黄</span>
             </div>
           );
         }
@@ -200,27 +205,104 @@ function statusFor(frame: TurnFrame) {
   return null;
 }
 
+const PLAY_PHASES = ["waiting", "live", "streaming", "settled"] as const;
+
 export function DensityStream({
   density,
   phase = "settled",
   question,
   sourcesOpen = false,
   onGateResolved,
+  playable = false,
 }: {
   readonly density: TurnFrame["density"];
   readonly phase?: TurnFrame["phase"];
   readonly question?: string;
   readonly sourcesOpen?: boolean;
   readonly onGateResolved?: (kind: "ok" | "skip") => void;
+  readonly playable?: boolean;
 }) {
   const scenario = getScenario(density);
-  const resolvedPhase = density === "short" && phase === "live" ? "waiting" : phase;
-  const base = getFrame(scenario, resolvedPhase);
-  const frame = overlayFrame(base, {
-    user: question ?? base.user,
-    footprint: base.footprint
-      ? { ...base.footprint, sourcesOpen: sourcesOpen || base.footprint.sourcesOpen }
-      : base.footprint,
+  const playFrames = useMemo(
+    () => scenario.frames.filter((f) => (PLAY_PHASES as readonly string[]).includes(f.phase)),
+    [scenario],
+  );
+  const settledAt = Math.max(0, playFrames.findIndex((f) => f.phase === "settled"));
+  const startAt = useMemo(() => {
+    if (playable && density === "gate") {
+      const live = playFrames.findIndex((f) => f.phase === "live");
+      return live >= 0 ? live : 0;
+    }
+    if (playable) return settledAt;
+    const resolvedPhase = density === "short" && phase === "live" ? "waiting" : phase;
+    const at = playFrames.findIndex((f) => f.phase === resolvedPhase);
+    return at >= 0 ? at : settledAt;
+  }, [density, phase, playable, playFrames, settledAt]);
+  const [index, setIndex] = useState(startAt);
+  const [playing, setPlaying] = useState(false);
+
+  useEffect(() => {
+    setIndex(startAt);
+    setPlaying(false);
+  }, [startAt]);
+
+  useEffect(() => {
+    if (!playing || !playable) return;
+    if (index >= playFrames.length - 1) {
+      setPlaying(false);
+      return;
+    }
+    const ms = playFrames[index]?.phase === "streaming" ? 900 : 650;
+    const t = window.setTimeout(() => setIndex((i) => Math.min(playFrames.length - 1, i + 1)), ms);
+    return () => window.clearTimeout(t);
+  }, [playing, playable, index, playFrames]);
+
+  const current = playFrames[Math.min(index, playFrames.length - 1)] ?? getFrame(scenario, phase);
+  const frame = overlayFrame(current, {
+    user: question ?? current.user,
+    footprint: current.footprint
+      ? { ...current.footprint, sourcesOpen: sourcesOpen || current.footprint.sourcesOpen }
+      : current.footprint,
   });
-  return <TurnRenderer frame={frame} view="live" onGateResolved={onGateResolved} />;
+
+  return (
+    <div className="spec-turn" data-playable={playable ? "true" : "false"}>
+      <TurnRenderer frame={frame} view="live" onGateResolved={onGateResolved} />
+      {playable ? (
+        <div className="spec-turn-play" role="group" aria-label="夹具播放">
+          <span className="spec-turn-play-kicker">夹具</span>
+          <button type="button" onClick={() => setPlaying((p) => !p)} aria-label={playing ? "暂停" : "播放"}>
+            {playing ? <Pause size={14} /> : <Play size={14} />}
+            {playing ? "暂停" : "播放"}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setPlaying(false);
+              setIndex((i) => Math.min(playFrames.length - 1, i + 1));
+            }}
+            aria-label="下一帧"
+          >
+            <StepForward size={14} />
+            下一帧
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setPlaying(false);
+              setIndex(0);
+              setPlaying(true);
+            }}
+            aria-label="重放"
+          >
+            <RotateCcw size={14} />
+            重放
+          </button>
+          <span className="spec-meta">
+            {frame.phase} · {index + 1}/{playFrames.length}
+          </span>
+        </div>
+      ) : null}
+    </div>
+  );
 }

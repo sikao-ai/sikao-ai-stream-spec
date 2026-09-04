@@ -3,3 +3,4 @@ export * from "./shell";
 export * from "./scenes";
 export * from "./manifest";
 export * from "./widgets";
+export * from "./cite";

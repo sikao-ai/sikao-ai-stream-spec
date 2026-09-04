@@ -454,18 +454,24 @@ export function LiveStepFeed({ children }: { readonly children: ReactNode }) {
 export function Cite({
   n,
   active = false,
+  invalid = false,
   onOpen,
+  citeRef,
 }: {
   readonly n: number;
   readonly active?: boolean;
+  readonly invalid?: boolean;
   readonly onOpen?: (n: number, el: HTMLButtonElement) => void;
+  readonly citeRef?: (el: HTMLButtonElement | null) => void;
 }) {
   return (
     <button
+      ref={citeRef}
       type="button"
       className="sk-cite"
       data-on={active ? "true" : "false"}
-      aria-label={`来源 ${n}`}
+      data-invalid={invalid ? "true" : "false"}
+      aria-label={invalid ? `来源 ${n}，已失效` : `来源 ${n}`}
       aria-expanded={active}
       onClick={(e) => onOpen?.(n, e.currentTarget)}
     >
@@ -490,51 +496,47 @@ function SourceFloat({
   const [ready, setReady] = useState(false);
 
   useLayoutEffect(() => {
-    const node = ref.current;
-    if (!node) return;
-    const width = Math.min(360, Math.max(280, window.innerWidth - 32));
-    const r = anchor.getBoundingClientRect();
-    const floatH = node.offsetHeight || 160;
-    const margin = 16;
-    let left = r.left;
-    if (left + width > window.innerWidth - margin) {
-      left = Math.max(margin, r.right - width);
-    }
-    if (left + width > window.innerWidth - margin) {
-      left = Math.max(margin, window.innerWidth - width - margin);
-    }
-    if (left < margin) left = margin;
-    const spaceBelow = window.innerHeight - r.bottom - margin;
-    const top =
-      spaceBelow >= Math.min(floatH, 200) + 8 || r.top < floatH + 8
-        ? r.bottom + 8
-        : Math.max(margin, r.top - floatH - 8);
-    setPos({ top, left, width });
-    setReady(true);
+    const place = () => {
+      const r = anchor.getBoundingClientRect();
+      const width = Math.min(360, Math.max(260, window.innerWidth - 24));
+      const margin = 12;
+      let left = r.left;
+      if (left + width > window.innerWidth - margin) {
+        left = Math.max(margin, r.right - width);
+      }
+      if (left < margin) left = margin;
+      setPos({ top: r.bottom + 6, left, width });
+      setReady(true);
+    };
+    place();
+    window.addEventListener("scroll", place, true);
+    window.addEventListener("resize", place);
+    return () => {
+      window.removeEventListener("scroll", place, true);
+      window.removeEventListener("resize", place);
+    };
   }, [anchor, item.n]);
 
   useEffect(() => {
+    let armed = false;
+    const arm = window.setTimeout(() => {
+      armed = true;
+    }, 80);
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
     const onPtr = (e: PointerEvent) => {
+      if (!armed) return;
       const t = e.target as Node;
       if (ref.current?.contains(t) || anchor.contains(t)) return;
       onClose();
     };
-    const onScroll = (e: Event) => {
-      if (ref.current?.contains(e.target as Node)) return;
-      onClose();
-    };
     document.addEventListener("keydown", onKey);
     document.addEventListener("pointerdown", onPtr);
-    document.addEventListener("scroll", onScroll, true);
-    window.addEventListener("resize", onClose);
     return () => {
+      window.clearTimeout(arm);
       document.removeEventListener("keydown", onKey);
       document.removeEventListener("pointerdown", onPtr);
-      document.removeEventListener("scroll", onScroll, true);
-      window.removeEventListener("resize", onClose);
     };
   }, [anchor, onClose]);
 
@@ -548,7 +550,13 @@ function SourceFloat({
       aria-label={`${item.title}，来源 ${item.n}`}
       style={{ top: pos.top, left: pos.left, width: pos.width }}
     >
-      <ContextCard item={item} defaultOpen focused numbered={numbered} id={`float-src-${item.n}`} />
+      <ContextCard
+        item={item}
+        variant="float"
+        numbered={numbered}
+        invalid={item.invalid}
+        id={`float-src-${item.n}`}
+      />
     </div>,
     document.body,
   );
@@ -561,6 +569,8 @@ export function ContextCard({
   id,
   numbered = true,
   invalid = false,
+  variant = "list",
+  compact = false,
 }: {
   readonly item: SourceCard;
   readonly defaultOpen?: boolean;
@@ -568,19 +578,31 @@ export function ContextCard({
   readonly id?: string;
   readonly numbered?: boolean;
   readonly invalid?: boolean;
+  readonly variant?: "list" | "float";
+  readonly compact?: boolean;
 }) {
-  const [open, setOpen] = useState(defaultOpen || focused);
+  const floating = variant === "float";
+  const [open, setOpen] = useState(defaultOpen || focused || floating);
   useEffect(() => {
-    if (focused) setOpen(true);
-  }, [focused]);
+    if (focused || floating) setOpen(true);
+  }, [focused, floating]);
   return (
-    <article className="sk-ctx" data-open={open ? "true" : "false"} data-invalid={invalid ? "true" : "false"} id={id ?? `src-${item.n}`}>
+    <article
+      className="sk-ctx"
+      data-open={open ? "true" : "false"}
+      data-invalid={invalid ? "true" : "false"}
+      data-float={floating ? "true" : "false"}
+      data-compact={compact ? "true" : "false"}
+      id={id ?? `src-${item.n}`}
+    >
       <button
         type="button"
         className="sk-ctx-hit"
         aria-expanded={open}
-        aria-label={`${item.title}，${invalid ? "已失效" : item.kind}，${item.body.length} 字`}
-        onClick={() => setOpen((v) => !v)}
+        aria-label={`${item.title}，${invalid ? "已失效" : item.kind}${floating ? "" : `，${item.body.length} 字`}`}
+        onClick={() => {
+          if (!floating) setOpen((v) => !v);
+        }}
       >
         <span className="sk-ctx-lead" aria-hidden="true">
           {numbered ? <span className="sk-ctx-n">{item.n}</span> : <FileText size={11} strokeWidth={2.5} />}
@@ -591,12 +613,16 @@ export function ContextCard({
             {invalid ? "已失效" : item.kind}
           </span>
         </span>
-        <span className="sk-ctx-chars">{item.body.length} 字</span>
-        <span className="sk-ctx-chev" aria-hidden="true">
-          <ChevronDown size={14} />
-        </span>
+        {floating ? null : <span className="sk-ctx-chars">{item.body.length} 字</span>}
+        {floating ? null : (
+          <span className="sk-ctx-chev" aria-hidden="true">
+            <ChevronDown size={14} />
+          </span>
+        )}
       </button>
-      <p className="sk-ctx-body">{invalid ? "这条已经没了" : open ? item.body : item.snippet}</p>
+      {compact && !open && !floating ? null : (
+        <p className="sk-ctx-body">{invalid ? "这条已经没了" : open || floating ? item.body : item.snippet}</p>
+      )}
     </article>
   );
 }
@@ -718,6 +744,42 @@ export function PromptList({
           </button>
         );
       })}
+    </div>
+  );
+}
+
+export function FollowupFold({
+  items,
+  folded = true,
+}: {
+  readonly items: readonly string[];
+  readonly folded?: boolean;
+}) {
+  const [open, setOpen] = useState(!folded);
+  return (
+    <div className="sk-follow" data-folded={open ? "false" : "true"}>
+      <button
+        type="button"
+        className="sk-gate-head sk-widget-head"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <span className="sk-turn-ico" aria-hidden="true">
+          <ListPlus size={14} strokeWidth={2.2} />
+        </span>
+        <span className="sk-turn-copy">
+          <span className="sk-gate-title">下一问</span>
+          <span className="sk-follow-n">{items.length}</span>
+        </span>
+        <span className="sk-widget-chev" aria-hidden="true">
+          {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+        </span>
+      </button>
+      <div className="sk-widget-fold" data-open={open ? "true" : "false"}>
+        <div className="sk-widget-fold-inner">
+          <PromptList items={items} />
+        </div>
+      </div>
     </div>
   );
 }
@@ -1206,8 +1268,13 @@ export function MethodCard({
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
       >
-        <KindTag kind="suggest" label="方法" />
-        <span className="sk-gate-title">{title}</span>
+        <span className="sk-turn-ico" aria-hidden="true">
+          <Sparkles size={14} strokeWidth={2.2} />
+        </span>
+        <span className="sk-turn-copy">
+          <KindTag kind="suggest" label="方法" />
+          <span className="sk-gate-title">{title}</span>
+        </span>
         <span className="sk-widget-chev" aria-hidden="true">
           {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
         </span>
@@ -1239,8 +1306,13 @@ export function YouTryGate({
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
       >
-        <KindTag kind="input" label="到你了" />
-        <span className="sk-gate-title">{title}</span>
+        <span className="sk-turn-ico" aria-hidden="true">
+          <PenLine size={14} strokeWidth={2.2} />
+        </span>
+        <span className="sk-turn-copy">
+          <KindTag kind="input" label="到你了" />
+          <span className="sk-gate-title">{title}</span>
+        </span>
         <span className="sk-widget-chev" aria-hidden="true">
           {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
         </span>
@@ -1789,6 +1861,7 @@ export function AnswerBody({
   sourcesOpen = false,
   widgets,
   streaming = false,
+  defaultCite,
 }: {
   readonly phase: StreamPhase;
   readonly paragraphs?: readonly ProseParagraph[];
@@ -1797,10 +1870,13 @@ export function AnswerBody({
   readonly sourcesOpen?: boolean;
   readonly widgets?: ReactNode;
   readonly streaming?: boolean;
+  readonly defaultCite?: number;
 }) {
-  const [citeFocus, setCiteFocus] = useState<number | undefined>(undefined);
+  const [citeFocus, setCiteFocus] = useState<number | undefined>(defaultCite);
   const [citeAnchor, setCiteAnchor] = useState<HTMLElement | null>(null);
   const [listOpen, setListOpen] = useState(sourcesOpen);
+  const citeEls = useRef(new Map<number, HTMLButtonElement>());
+
 
   useEffect(() => {
     if (sourcesOpen) setListOpen(true);
@@ -1810,6 +1886,35 @@ export function AnswerBody({
     setCiteFocus(undefined);
     setCiteAnchor(null);
   }, []);
+
+  useEffect(() => {
+    if (defaultCite == null || listOpen || phase !== "settled") return;
+    const t = window.setTimeout(() => {
+      const el = citeEls.current.get(defaultCite);
+      if (!el) return;
+      setCiteFocus(defaultCite);
+      setCiteAnchor(el);
+    }, 0);
+    return () => window.clearTimeout(t);
+  }, [defaultCite, listOpen, phase, sources]);
+
+  useEffect(() => {
+    if (citeFocus == null) return;
+    const ns = sources.map((s) => s.n);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      e.preventDefault();
+      const i = ns.indexOf(citeFocus);
+      if (i < 0) return;
+      const next = ns[(i + (e.key === "ArrowRight" ? 1 : ns.length - 1)) % ns.length];
+      const el = citeEls.current.get(next);
+      if (!el) return;
+      setCiteFocus(next);
+      setCiteAnchor(el);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [citeFocus, sources]);
 
   if (phase === "waiting" || phase === "live") {
     return null;
@@ -1845,7 +1950,17 @@ export function AnswerBody({
                   {p.segments.map((seg, j) =>
                     "cite" in seg ? (
                       showCited ? (
-                        <Cite key={j} n={seg.cite} active={citeFocus === seg.cite} onOpen={openCite} />
+                        <Cite
+                          key={j}
+                          n={seg.cite}
+                          active={citeFocus === seg.cite}
+                          invalid={sources.some((s) => s.n === seg.cite && s.invalid)}
+                          onOpen={openCite}
+                          citeRef={(el) => {
+                            if (el) citeEls.current.set(seg.cite, el);
+                            else citeEls.current.delete(seg.cite);
+                          }}
+                        />
                       ) : null
                     ) : (
                       <span key={j}>{seg.text}</span>
