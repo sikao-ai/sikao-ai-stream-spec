@@ -11,6 +11,7 @@ const fixtures = readFileSync(new URL("../src/player/fixtures/scenarios.ts", imp
 const slotOrder = readFileSync(new URL("../src/player/slot-order.ts", import.meta.url), "utf8");
 const player = readFileSync(new URL("../src/player/ScenarioPlayer.tsx", import.meta.url), "utf8");
 const renderer = readFileSync(new URL("../src/renderer/TurnRenderer.tsx", import.meta.url), "utf8");
+const gallery = readFileSync(new URL("../src/components/gallery.tsx", import.meta.url), "utf8");
 const specApp = readFileSync(new URL("../src/components/spec-app.tsx", import.meta.url), "utf8");
 const labs = readFileSync(new URL("../src/labs/live-model-demo/AiDock.tsx", import.meta.url), "utf8");
 
@@ -71,9 +72,13 @@ test("turn contract exports the copyable tree", () => {
   assert.match(turn, /cluster: 2/);
   assert.match(turn, /禁止负 margin 贴上/);
   assert.match(turn, /发现\/推荐是模块卡/);
-  assert.match(turn, /流内透明底/);
-  assert.match(turn, /禁止 scale/);
-  assert.match(turn, /头行折叠前后同一 28px/);
+  assert.match(turn, /拼装不换皮/);
+  assert.match(turn, /同样 hug 沉底/);
+  assert.match(turn, /禁止流内改透明通栏/);
+  assert.match(turn, /禁止发丝线，纯色块/);
+  assert.match(gallery, /拼装不许换皮/);
+  assert.match(gallery, /选项通栏/);
+  assert.match(gallery, /夹具在回合下方/);
   assert.doesNotMatch(renderer, /导航 CTA · 炭黑/);
   assert.match(renderer, /spec-turn-play-kicker/);
   assert.match(turn, /正在想/);

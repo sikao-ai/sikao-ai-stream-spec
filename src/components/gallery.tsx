@@ -253,10 +253,10 @@ export function Gallery() {
         n="05"
         title="确认门"
         lede="活时一问、选项行、点选即提交。未点选挡住正文。八态都要画。"
-        px="sunken 内边距 16 · 选项行高 36 · 主钮视觉 32（移动命中 44）· KindTag 11 · 问句 16/600"
-        xy={{ x: "KindTag 与问句同一行；选项左齐问句", y: "KindTag 与问句垂直中心；选项等高" }}
-        forbid="铺满奶黄；落定后再挂一张审批；柔黄用在导航 CTA"
-        checks={["八态全画", "480ms 内可改选", "fail 仍挡住", "ok/skip 才放行", "KindTag 写「确认」不是「审批」", "进场 280ms y12 scale.98，禁止弹跳"]}
+        px="纯色 sunk 无发丝 · 问句 16/600 · KindTag 11 白底 · 选项 36 · 圈 16 描边 1.5 · 主钮 32 · 底栏实色块"
+        xy={{ x: "KindTag 与问句同一行；选项左齐卡片 inset 16，不缩进问句列", y: "KindTag 与问句垂直中心；选项行高 36" }}
+        forbid="铺满奶黄；顶条左缘色条；发丝描边；底栏 1px 线；两列把选项缩进问句下；落定后再挂一张审批；柔黄导航 CTA"
+        checks={["八态全画", "480ms 内可改选", "fail 仍挡住", "ok/skip 才放行", "KindTag 写「确认」不是「审批」", "纯色块无发丝、无左缘色条", "KindTag+问句同一行，选项通栏", "进场 280ms y12 scale.98，禁止弹跳"]}
         tabs={HITL_APPROVE_STATES.map((s) => ({
           id: s.id,
           label: ({ idle: "未选", picked: "已选", submit: "提交中", ok: "已写入", skip: "已忽略", fail: "没写上", invalid: "无效", reopen: "再问" } as const)[s.id],
@@ -264,13 +264,18 @@ export function Gallery() {
         tab={gate}
         onTab={(id) => setGate(id as ApproveSpecimen)}
         standard={[
-          { k: "slot", v: "approval · gate + live" },
+          { k: "slot", v: "approval · gate + live。15 门卡 tab 默认这一态。" },
           { k: "see", v: gateRow?.see ?? "" },
           { k: "action", v: gateRow?.action ?? "" },
           { k: "挡住", v: gateRow?.block ?? "" },
+          { k: "皮", v: "整卡纯色 sunk，禁止 inset 发丝。底栏另铺一块略深实色，不用 1px 线切开。" },
+          { k: "顶条", v: "「先选一下，选完才往下写」。奶黄纯色条。禁止左缘色条、禁止铺满整卡。" },
+          { k: "布局", v: "KindTag「确认」+ 问句同一行。提示、选项通栏，左齐卡片 inset。不是 KindTag 一列、选项缩进问句下。" },
+          { k: "字", v: "问句 16/600。选项 14、行高 36。圈 16、描边 1.5 实色。KindTag 11 白底芯片。" },
+          { k: "钮", v: "提交视觉 32。未选灰实色块，已选炭黑填。不要发丝圈。" },
           { k: "copy", v: copyLock("活时门提示") },
           { k: "KindTag", v: copyLock("门卡 KindTag") },
-          { k: "不要", v: "铺满奶黄；落定后再挂一张审批" },
+          { k: "不要", v: "铺满奶黄；左缘色条；发丝线；两列缩进；落定后再挂一张审批；KindTag 写成「审批」" },
         ]}
         code={`<ProposalCard
   blocking
@@ -291,9 +296,9 @@ export function Gallery() {
         n="06"
         title="推荐卡"
         lede="落定提案。主建议 + 推荐度 1–5。不挡下一问。六态都要画。"
-        px="内边距 16 · 推荐度 5 点 · 格子 2×2 · 查看笔记炭黑填高 32（移动视觉 32 · 命中 44）"
-        xy={{ x: "KindTag 与问句同一行；主建议与推荐度两端", y: "KindTag 与问句中心；推荐度与标题中心" }}
-        forbid="高信心；柔黄主钮；挡住下一问；把 Decision Markdown 再画一张审批"
+        px="纯色 sunk 无发丝 · 问句 16/600 · KindTag 11 白底 · 推荐度 5 点 · 主建议与推荐度同一行中心"
+        xy={{ x: "KindTag 与问句同一行；主建议与推荐度两端", y: "KindTag 与问句中心；推荐度与主标题中心" }}
+        forbid="高信心；柔黄主钮；挡住下一问；发丝描边；把 Decision Markdown 再画一张审批"
         checks={["六态全画", "落定不挡", "写入中主钮 disabled", "失败幂等重试同一项", "进场 280ms；格子展开 200ms grid-rows"]}
         tabs={HITL_REC_STATES.map((s) => ({
           id: s.id,
@@ -302,12 +307,15 @@ export function Gallery() {
         tab={rec}
         onTab={(id) => setRec(id as RecSpecimen)}
         standard={[
-          { k: "slot", v: "widgets · gate settled" },
+          { k: "slot", v: "widgets · gate settled。15 门卡下一帧才到这张。" },
           { k: "see", v: recRow?.see ?? "" },
           { k: "action", v: recRow?.action ?? "" },
           { k: "挡住", v: recRow?.block ?? "" },
-          { k: "copy", v: "推荐度 1–5；导航 CTA「查看笔记」炭黑" },
-          { k: "不要", v: "高信心；柔黄主钮；挡住下一问" },
+          { k: "皮", v: "纯色 sunk，禁止发丝。主建议/芯片是白实色块，不是描边 pill。" },
+          { k: "布局", v: "KindTag「建议」+ 问句同一行。主建议左、推荐度右，推荐度与主标题垂直中心。" },
+          { k: "字", v: "问句 16/600。KindTag 11 白底。推荐度 1–5 点，空点用 border-strong 实色。" },
+          { k: "CTA", v: "接受炭黑填。查看笔记只在 written，炭黑 FillBtn，禁止柔黄、禁止泄漏实验室文案。" },
+          { k: "不要", v: "高信心；柔黄主钮；挡住下一问；发丝线；实验室 meta 进流" },
         ]}
         code={`<RecommendCard specimen="${rec}" />
 <FillBtn>查看笔记</FillBtn>`}
@@ -322,9 +330,9 @@ export function Gallery() {
         n="07"
         title="Context Card"
         lede="你记过是已有笔记，不是本轮 [n]。本轮引用浮出见 03。失效卡留着，写「这条已经没了」。"
-        px="kicker 11 · 标题 13/500 · 字数 11 · 内边距 16 · 半径 12"
-        xy={{ x: "编号/笔记标 16 列左齐正文", y: "头一行垂直中心" }}
-        forbid="可回看；网页 favicon 引用条塞进气泡；失效就从布局消失；把你记过画成本轮 [n]"
+        px="纯色 sunk 无发丝 · kicker 11 在卡外 · 标题 13/500 · 字数 11 · 内边距 16 · 半径 12 · 卡内标 16"
+        xy={{ x: "卡左 = 正文左；卡内笔记标 16。不是 16 列空槽假 ico", y: "kicker 与卡 gap 6；头一行垂直中心" }}
+        forbid="可回看；网页 favicon 引用条塞进气泡；失效就从布局消失；把你记过画成本轮 [n]；拼装里改成折叠行"
         checks={["你记过 ≠ 本轮 [n]", "0 条不渲染卡", "失效文案「这条已经没了」", "卡进场 280ms"]}
         tabs={[
           { id: "lookback", label: "你记过" },
@@ -333,10 +341,11 @@ export function Gallery() {
         tab={ctx}
         onTab={setCtx}
         standard={[
-          { k: "slot", v: "lookback" },
+          { k: "slot", v: "lookback · 15 讲题/工具/门卡落定都出这一张" },
           { k: "copy", v: ctx === "invalid" ? "这条已经没了" : "你记过" },
-          { k: "要", v: "落定 0–2 张。编号关。不是本轮 [n]。" },
-          { k: "不要", v: "可回看；画成本轮角标" },
+          { k: "皮", v: "kicker 在卡外。卡是纯色 sunk 笔记卡，无发丝。拼装不许改成折叠行或裸 stream row。" },
+          { k: "要", v: "落定 0–2 张。编号关。不是本轮 [n]。摘录两行 clamp。" },
+          { k: "不要", v: "可回看；画成本轮角标；favicon 条；拼装换皮" },
         ]}
         code={
           ctx === "invalid"
@@ -359,9 +368,9 @@ export function Gallery() {
         n="08"
         title="发现卡"
         lede="工具流落定。条形 / 进度 / 曲线 / 对照。空态不藏卡。"
-        px="KindTag 11 · 标题 16/600 · 数字与单位同一 baseline · CTA 高 32"
-        xy={{ x: "KindTag / 标题 / 数字 / 图 / CTA 左齐", y: "KindTag 与翻页中心；数字与单位 baseline" }}
-        forbid="一次堆所有发现卡；空态把整卡删掉；拿发现卡当方法卡"
+        px="纯色 sunk 无发丝 · KindTag 11 白底 · 标题 16/600 · 数字与单位 baseline · 条 6px · CTA 高 32"
+        xy={{ x: "KindTag / 标题 / 数字 / 图 / CTA 左齐 inset 16", y: "KindTag 与翻页中心；数字与单位 baseline" }}
+        forbid="一次堆所有发现卡；空态把整卡删掉；拿发现卡当方法卡；发丝描边"
         checks={["四画法 + 空态", "单则藏翻页", "空态文案「这一轮没有新的错因」", "进场 280ms，widgets 里 delay 0"]}
         tabs={[
           { id: "bars", label: "条形" },
@@ -373,11 +382,13 @@ export function Gallery() {
         tab={insight}
         onTab={setInsight}
         standard={[
-          { k: "slot", v: "widgets · tool settled" },
-          { k: "KindTag", v: "发现" },
+          { k: "slot", v: "widgets · tool settled。15 工具落定最多 1 张。" },
+          { k: "皮", v: "纯色 sunk，禁止发丝。条 6px 实色，不要 4px 半透明。" },
+          { k: "布局", v: "KindTag「发现」/ 标题 / 数字 / 图 / CTA 左齐 inset 16。" },
+          { k: "字", v: "标题 16/600。KindTag 11 白底。数字与单位同一 baseline。" },
           { k: "空态", v: copyLock("发现卡空态") },
           { k: "翻页", v: "发现 N · 上一则/下一则。不一次堆所有卡。" },
-          { k: "不要", v: "方法卡讲怎么做；发现卡只讲你错在哪" },
+          { k: "不要", v: "方法卡讲怎么做；发现卡只讲你错在哪；发丝线；一回合多张" },
         ]}
         code={
           insight === "empty"
@@ -396,9 +407,9 @@ export function Gallery() {
         n="09"
         title="筛选表"
         lede="工具流落定对照。芯片重排行，不当导航、不当第六族。"
-        px="表内筛芯片 · 单元格 ellipsis · 390 改卡片列表"
-        xy={{ x: "表左齐正文", y: "芯片与表头中心" }}
-        forbid="行跳路由；390 整页横滚；筛芯片做成第六族 pill"
+        px="纯色 sunk 无发丝 · 表头 16/600 · KindTag 11 白底 · 芯片实色块 · 首列 500 · 390 改卡片"
+        xy={{ x: "表左齐正文；KindTag 与表头同一行", y: "芯片与表头垂直中心" }}
+        forbid="行跳路由；390 整页横滚；筛芯片做成第六族 pill；发丝描边"
         checks={["空态「没有这类错题」表还在", "点行只展开详情"]}
         tabs={[
           { id: "rows", label: "有行" },
@@ -408,9 +419,11 @@ export function Gallery() {
         onTab={setFilter}
         standard={[
           { k: "slot", v: "widgets · tool settled" },
-          { k: "空态", v: "没有这类错题" },
-          { k: "390", v: "改成卡片列表，筛芯片横滑" },
-          { k: "不要", v: "行跳路由；整页横滚" },
+          { k: "皮", v: "纯色 sunk，禁止发丝。筛芯片白实色块，选中炭黑填。" },
+          { k: "字", v: "表头 16/600。KindTag 11 白底。首列 500 主色，其余 secondary。" },
+          { k: "空态", v: "没有这类错题。表壳还在，不要删卡。" },
+          { k: "390", v: "改成卡片列表，筛芯片横滑。禁止整页横滚。" },
+          { k: "不要", v: "行跳路由；整页横滚；第六族 pill；发丝线" },
         ]}
         code={filter === "empty" ? `<FilterTable empty />` : `<FilterTable />`}
       >
@@ -420,16 +433,18 @@ export function Gallery() {
       <SpecimenRow
         n="10"
         title="方法卡 / 到你了"
-        lede="独立标本：折叠 hug 沉底。流内（15）透明底 16 列，和下一问同一行皮。"
-        px="折叠 hug 一行 高 28 宽 ≤36ch · KindTag 10 · 标题 13 · 展开才通栏 12 内边距"
-        xy={{ x: "KindTag 与标题同一行", y: "KindTag 与标题垂直中心" }}
-        forbid="把「到你了」当标题；默认展开抢正文；挂在脚印下方"
-        checks={["density=teach 且 settled 才出", "默认折叠", "标题锁「下一空自己选」", "KindTag 锁「方法」「到你了」", "展开用 200ms grid-rows，不要 display:none 硬切"]}
+        lede="折叠 hug 沉底。独立标本和回合组装同一皮，拼装不许改成透明通栏。"
+        px="折叠 hug 5×8 半径 10 宽≤36ch · KindTag 10 · 标题 13 · 展开才通栏 pad 12"
+        xy={{ x: "条左 = 正文左。KindTag 与标题同一行。独立标本 = 15 拼装", y: "KindTag 与标题垂直中心" }}
+        forbid="流内改透明通栏；把「到你了」当标题；默认展开抢正文；挂在脚印下方；双 lucide"
+        checks={["density=teach 且 settled 才出", "默认折叠 hug 沉底", "15 拼装同一皮，不许透明通栏", "标题锁「下一空自己选」", "KindTag 锁「方法」「到你了」", "展开用 200ms grid-rows，不要 display:none 硬切"]}
         standard={[
           { k: "slot", v: "widgets · teach settled" },
-          { k: "copy", v: "方法 · 到你了 · 标题「下一空自己选」" },
-          { k: "出现", v: "density=teach 且 phase=settled 且夹具有卡" },
-          { k: "不要", v: "挂在脚印下方；把「到你了」当标题" },
+          { k: "皮", v: "折叠 hug 沉底条。pad 5 8、半径 10。独立标本和 15 拼装必须同一皮。" },
+          { k: "copy", v: "KindTag「方法」「到你了」。到你了标题锁「下一空自己选」。" },
+          { k: "下一问", v: "FollowupFold 同样 hug 沉底，不是全宽透明行。展开才出 PromptList（见 11）。" },
+          { k: "出现", v: "density=teach 且 phase=settled。默认折叠。展开 grid-rows 200ms。" },
+          { k: "不要", v: "流内改透明通栏；双 lucide；挂在脚印下方；把「到你了」当标题；display:none 硬切" },
         ]}
         code={`<MethodCard title="先看宾语，再看语气硬度" reason="…" />
 <YouTryGate title="下一空自己选" items={["抑制萌芽", "遏制势头"]} />`}
@@ -449,9 +464,10 @@ export function Gallery() {
         forbid="描边 pill；秃行纯字；当数据标签；挂在脚印下"
         checks={["只出现在 widgets", "不是 composer"]}
         standard={[
-          { k: "slot", v: "widgets" },
-          { k: "要", v: "全宽无描边行" },
-          { k: "不要", v: "数据标签；描边 pill；秃行纯字；挂在脚印下" },
+          { k: "slot", v: "widgets · 展开后的列表" },
+          { k: "折叠", v: "流内默认是 FollowupFold hug 条（见 10/15）。本标本只画展开后的全宽行。" },
+          { k: "要", v: "全宽无描边 lucide 行。行高约 36。" },
+          { k: "不要", v: "把折叠态画成本标本；数据标签；描边 pill；秃行纯字；挂在脚印下" },
         ]}
         code={`<PromptList items={["为什么不能选遏制", "对比近义", "做成今日计划"]} />`}
       >
@@ -559,14 +575,14 @@ export function Gallery() {
       <SpecimenRow
         n="15"
         title="回合组装"
-        lede="题面是引用块，你记过是笔记卡，方法/到你了/下一问是透明底折叠行。夹具播放在回合下方，不进流。"
+        lede="题面是引用块，你记过是笔记卡，方法/到你了/下一问是 hug 沉底条，和 10 同一皮。夹具在回合下方。"
         px="stem→Dots 12 · Dots→正文 16 · 正文→你记过 16 · 卡组 12 · 折叠 2 · 脚印 16"
         xy={{
-          x: "Dots / 方法 / 到你了 / 下一问 同一 16 列；题面与你记过卡左齐正文，卡内 ico 随 inset",
+          x: "题面/你记过/折叠条左齐正文。Dots 自己 16 列。折叠条不换皮。",
           y: "每行 ico / 文案 / chevron 垂直中心。用户泡单独一行在上。",
         }}
         forbid="InFlight/MessageList 拼盘；一回合堆多张数据卡；各宿主自绘过程条；按密度换色"
-        checks={["short 无过程则零 chrome", "teach 才有 stem", "每回合最多 1 张数据卡", "gate live 是 Approval 不是专家栈", "live/persisted/replay 槽序一致"]}
+        checks={["short 无过程则零 chrome", "teach 才有 stem", "每回合最多 1 张数据卡", "gate live 是 Approval 不是专家栈", "方法/到你了/下一问与 10 同一 hug 皮", "数据卡纯色无发丝", "夹具在回合下方", "live/persisted/replay 槽序一致"]}
         tabs={[
           { id: "short", label: "短答" },
           { id: "tool", label: "工具" },
@@ -577,6 +593,10 @@ export function Gallery() {
         onTab={(id) => setDensity(id as DensityId)}
         standard={[
           { k: "order", v: "用户泡 → 题面 → Dots → 正文 → 你记过 → 折叠组 → 脚印" },
+          { k: "皮", v: "题面引用块、你记过笔记卡、方法/到你了/下一问 hug 沉底，与 07/10 同一皮。数据卡纯色 sunk，禁止发丝。拼装不许换皮。" },
+          { k: "夹具", v: "播放/下一帧/重放在回合下方，标「夹具」。禁止放左上角当产品控件。" },
+          { k: "门卡", v: "tab 默认 live 确认门（等你选）。落定才是推荐卡。确认门抄 05，不要自造两列缩进。" },
+          { k: "工具", v: "落定最多 1 张发现卡。发现卡→下一问 12，不是折叠行距 2。" },
           ...TURN_RHYTHM_ROWS.map((row) => ({
             k: `${row.from}→${row.to}`,
             v: `${row.gap}px · ${row.why}`,
@@ -659,7 +679,7 @@ export function Gallery() {
         xy={{ x: "只在 Y 上移入，不左右晃", y: "scale .98 → 1，不要 overshoot" }}
         forbid="弹跳 bounce；弹簧 spring；扫光 shimmer 进场；自造时长"
         checks={[
-          "确认门/推荐/发现/筛选/Context 走 sk-card-enter；流内方法/到你了/下一问透明行不 scale",
+          "确认门/推荐/发现/筛选/Context/方法/到你了 走 sk-card-enter；拼装不换皮",
           "widgets 第 n 张 delay n×60ms",
           "方法/到你了/下一问展开是 grid-rows 200ms，不是 display 切换",
           "prefers-reduced-motion 全关",

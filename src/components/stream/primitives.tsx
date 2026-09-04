@@ -1040,14 +1040,9 @@ export function ProposalCard({
         </div>
       ) : (
         <div className="sk-approve-pad" key={qi}>
-          <div className="sk-approve-top">
-            <div className="sk-approve-copy">
-              <div className="sk-approve-head">
-                <KindTag kind="action" label="确认" />
-                <span className="sk-approve-q">{question.q}</span>
-              </div>
-              {question.hint ? <span className="sk-approve-hint">{question.hint}</span> : null}
-            </div>
+          <div className="sk-approve-head">
+            <KindTag kind="action" label="确认" />
+            <span className="sk-approve-q">{question.q}</span>
             <button
               type="button"
               className="sk-approve-x"
@@ -1057,6 +1052,7 @@ export function ProposalCard({
               <X size={14} strokeWidth={2.2} />
             </button>
           </div>
+          {question.hint ? <span className="sk-approve-hint">{question.hint}</span> : null}
           <div className="sk-approve-opts">
             {question.options.map((option, i) => {
               const on = selected.includes(i);
@@ -1197,15 +1193,11 @@ function ProposalSpecimen({
     >
       {blocking ? <p className="sk-approve-live">先选一下，选完才往下写</p> : null}
       <div className="sk-approve-pad">
-        <div className="sk-approve-top">
-          <div className="sk-approve-copy">
-            <div className="sk-approve-head">
-              <KindTag kind="action" label="确认" />
-              <span className="sk-approve-q">{title}</span>
-            </div>
-            <span className="sk-approve-hint">{reason}</span>
-          </div>
+        <div className="sk-approve-head">
+          <KindTag kind="action" label="确认" />
+          <span className="sk-approve-q">{title}</span>
         </div>
+        <span className="sk-approve-hint">{reason}</span>
         <div className="sk-approve-opts">
           {FIXTURE_APPROVE.map((option, i) => (
             <button

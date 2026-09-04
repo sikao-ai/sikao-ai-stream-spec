@@ -3044,7 +3044,6 @@ button.sk-status-line {
   border: none;
   border-radius: var(--radius-12);
   background: var(--color-bg-sunken);
-  box-shadow: none;
   min-width: 0;
 }
 
@@ -3273,21 +3272,24 @@ button.sk-status-line {
   border: none;
   border-radius: var(--card-radius);
   background: var(--color-bg-sunken);
-  box-shadow: none;
 }
 
 .sk-approve-live {
   margin: 10px 10px 0;
-  padding: 7px 12px;
+  padding: 8px 12px;
   border-radius: var(--nested-radius);
-  font-size: var(--font-tiny);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: var(--color-state-warn);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  line-height: 1.35;
+  color: color-mix(in srgb, var(--color-state-warn) 72%, var(--color-text-primary));
   background: var(--color-state-warn-soft);
 }
 
 .sk-approve-pad {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   padding: var(--card-inset) var(--card-inset) 10px;
 }
 
@@ -3420,20 +3422,6 @@ button.sk-status-line {
   }
 }
 
-.sk-approve-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.sk-approve-copy {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
 .sk-approve-head {
   display: flex;
   align-items: center;
@@ -3443,18 +3431,22 @@ button.sk-status-line {
 
 .sk-approve-head .sk-ktag {
   flex-shrink: 0;
+  padding: 3px 8px;
+  font-size: 11px;
+  background: var(--color-bg-surface);
 }
 
 .sk-approve-q {
   min-width: 0;
-  font-size: 13px;
-  font-weight: 500;
+  flex: 1;
+  font-size: 16px;
+  font-weight: 600;
   color: var(--color-text-primary);
-  line-height: 1.4;
+  line-height: 1.3;
 }
 
 .sk-approve-hint {
-  font-size: var(--font-meta);
+  font-size: 13px;
   line-height: 1.5;
   color: var(--color-text-secondary);
 }
@@ -3465,11 +3457,12 @@ button.sk-status-line {
   place-items: center;
   width: 24px;
   height: 24px;
+  flex: none;
   padding: 0;
   border: none;
   border-radius: 5px;
   background: transparent;
-  color: var(--color-text-meta-soft);
+  color: var(--color-text-meta);
 }
 
 .sk-approve-x:hover,
@@ -3483,7 +3476,7 @@ button.sk-status-line {
 }
 
 .sk-approve-opts {
-  margin-top: 8px;
+  margin-top: 2px;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -3498,14 +3491,15 @@ button.sk-status-line {
   align-items: center;
   gap: 8px;
   width: 100%;
+  min-height: 36px;
   margin: 0;
-  padding: 8px 0;
+  padding: 0 8px 0 0;
   border: none;
   border-radius: var(--nested-radius);
   background: transparent;
-  color: var(--color-text-secondary);
+  color: var(--color-text-primary);
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   text-align: left;
 }
@@ -3528,6 +3522,7 @@ button.sk-status-line {
   place-items: center;
   background: var(--color-bg-surface);
   color: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--color-text-primary);
 }
 
 .sk-approve-mark[data-type="radio"] {
@@ -3540,7 +3535,8 @@ button.sk-status-line {
 
 .sk-approve-mark[data-on="true"] {
   background: var(--color-text-primary);
-  color: var(--color-bg-sunken);
+  box-shadow: none;
+  color: var(--color-bg-surface);
 }
 
 .sk-approve-dot {
@@ -3596,9 +3592,8 @@ button.sk-status-line {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px var(--card-inset) var(--card-inset);
-  background: transparent;
-  box-shadow: inset 0 1px 0 var(--color-border-subtle);
+  padding: 12px var(--card-inset);
+  background: color-mix(in srgb, var(--color-text-primary) 5%, var(--color-bg-sunken));
 }
 
 .sk-approve-pager {
@@ -3608,9 +3603,9 @@ button.sk-status-line {
 }
 
 .sk-approve-wait {
-  font-size: var(--font-tiny);
-  font-weight: 500;
-  color: var(--color-text-meta);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
 }
 
 .sk-approve-dots {
@@ -3642,13 +3637,13 @@ button.sk-status-line {
 .sk-approve-send {
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   border: none;
   border-radius: 8px;
   background: var(--color-bg-surface);
-  color: var(--color-text-meta-soft);
+  color: var(--color-text-meta);
 }
 
 .sk-approve-send:not(:disabled) {
@@ -3733,20 +3728,25 @@ button.sk-status-line {
 
 .sk-rec-top .sk-ktag {
   flex-shrink: 0;
+  padding: 3px 8px;
+  font-size: 11px;
+  background: var(--color-bg-surface);
 }
 
 .sk-rec-q {
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 1.4;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
   color: var(--color-text-primary);
 }
 
 .sk-rec-primary {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  column-gap: 12px;
+  row-gap: 2px;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
   margin: 0;
   padding: 10px 12px;
   border-radius: var(--nested-radius);
@@ -3754,20 +3754,21 @@ button.sk-status-line {
 }
 
 .sk-rec-primary-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
+  display: contents;
 }
 
 .sk-rec-primary-title {
-  font-size: var(--font-body);
-  font-weight: 500;
+  grid-column: 1;
+  grid-row: 1;
+  font-size: 14px;
+  font-weight: 600;
   line-height: 1.4;
   color: var(--color-text-primary);
 }
 
 .sk-rec-primary-detail {
+  grid-column: 1;
+  grid-row: 2;
   font-size: var(--font-meta);
   line-height: 1.45;
   color: var(--color-text-secondary);
@@ -3778,12 +3779,15 @@ button.sk-status-line {
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
 }
 
 .sk-rec-score-label {
-  font-size: var(--font-tiny);
+  font-size: 11px;
   font-weight: 600;
-  color: var(--color-text-meta);
+  color: var(--color-text-secondary);
 }
 
 .sk-rec-score-n {
@@ -3808,11 +3812,11 @@ button.sk-status-line {
   padding: 0;
   border: none;
   background: transparent;
-  color: var(--color-text-meta);
+  color: var(--color-text-secondary);
   font: inherit;
-  font-size: var(--font-tiny);
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
 }
 
 .sk-rec-fold-n {
@@ -3845,9 +3849,9 @@ button.sk-status-line {
   border: none;
   border-radius: var(--radius-999);
   background: var(--color-bg-surface);
-  color: var(--color-text-secondary);
+  color: var(--color-text-primary);
   font: inherit;
-  font-size: var(--font-meta);
+  font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
 }
@@ -3917,7 +3921,7 @@ button.sk-status-line {
   width: 7px;
   height: 7px;
   border-radius: 2px;
-  background: var(--color-bg-sunken);
+  background: var(--color-border-strong);
 }
 
 .sk-rec-meter[data-size="sm"] {
@@ -4015,14 +4019,22 @@ button.sk-status-line {
 }
 
 .sk-ftable-head .sk-ktag,
+.sk-insight-top .sk-ktag {
+  flex-shrink: 0;
+  padding: 3px 8px;
+  font-size: 11px;
+  background: var(--color-bg-surface);
+}
+
 .sk-insight-top .sk-insight-kicker {
   flex-shrink: 0;
 }
 
 .sk-ftable-title {
   margin-right: auto;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
   color: var(--color-text-primary);
 }
 
@@ -4042,9 +4054,9 @@ button.sk-status-line {
   border: none;
   border-radius: var(--radius-999);
   background: var(--color-bg-surface);
-  color: var(--color-text-secondary);
+  color: var(--color-text-primary);
   font: inherit;
-  font-size: var(--font-meta);
+  font-size: 12px;
   font-weight: 500;
 }
 
@@ -4068,8 +4080,9 @@ button.sk-status-line {
 .sk-insight-empty {
   margin: 0;
   padding: 12px var(--card-inset) var(--card-inset);
-  font-size: var(--font-meta);
-  color: var(--color-text-meta);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
 }
 
 .sk-ftable table {
@@ -4093,6 +4106,10 @@ button.sk-status-line {
   font-size: var(--font-tiny);
   font-weight: 600;
   color: var(--color-text-meta);
+}
+
+.sk-ftable td {
+  color: var(--color-text-secondary);
 }
 
 .sk-ftable td:first-child {
@@ -4139,9 +4156,9 @@ button.sk-status-line {
 
 .sk-insight-title {
   margin: 0;
-  font-size: var(--font-body);
-  font-weight: 500;
-  line-height: 1.5;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.35;
   color: var(--color-text-primary);
   text-wrap: pretty;
 }
@@ -4269,18 +4286,20 @@ button.sk-status-line {
 .sk-insight-rows li {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: auto 4px;
+  grid-template-rows: auto 6px;
   column-gap: 8px;
   row-gap: 6px;
   padding: 10px;
   border-radius: var(--nested-radius);
   background: var(--color-bg-surface);
-  font-size: var(--font-tiny);
-  color: var(--color-text-meta);
+  font-size: 12px;
+  color: var(--color-text-secondary);
 }
 
 .sk-insight-name {
   min-width: 0;
+  font-weight: 500;
+  color: var(--color-text-primary);
 }
 
 .sk-insight-val {
@@ -4292,10 +4311,10 @@ button.sk-status-line {
 
 .sk-insight-bar {
   grid-column: 1 / -1;
-  height: 4px;
+  height: 6px;
   border-radius: var(--radius-999);
   background: currentColor;
-  opacity: 0.45;
+  opacity: 0.9;
 }
 
 .sk-insight[data-tone="risk"] .sk-insight-bar { color: var(--color-state-err); }
@@ -4508,113 +4527,57 @@ button.sk-status-line {
   display: none;
 }
 
-.sk-turn-col .sk-method,
-.sk-turn-col .sk-youtry {
+.sk-follow {
+  display: flex;
+  flex-direction: column;
   align-self: stretch;
-  width: auto;
-  max-width: none;
-  padding: 0;
-  background: transparent;
-  border-radius: 0;
-  gap: 0;
-}
-
-.sk-turn-col .sk-method .sk-gate-head,
-.sk-turn-col .sk-youtry .sk-gate-head,
-.sk-turn-col .sk-follow .sk-gate-head {
-  display: grid;
-  grid-template-columns: var(--turn-icon) minmax(0, 1fr) 14px;
-  column-gap: var(--turn-lead-gap);
-  align-items: center;
   width: 100%;
-  height: 28px;
-  min-height: 28px;
-  max-height: 28px;
-  padding: 0;
+  min-width: 0;
+  gap: var(--space-2);
+  padding: 12px;
+  border: none;
+  border-radius: var(--card-radius);
+  background: var(--color-bg-sunken);
+}
+
+.sk-follow[data-folded="true"] {
+  align-self: start;
+  width: fit-content;
+  max-width: min(100%, 36ch);
   gap: 0;
+  padding: 5px 8px;
+  border-radius: 10px;
 }
 
-.sk-turn-col .sk-method .sk-gate-head > .sk-turn-ico,
-.sk-turn-col .sk-youtry .sk-gate-head > .sk-turn-ico {
-  display: grid;
-}
-
-.sk-turn-col .sk-method .sk-ktag svg,
-.sk-turn-col .sk-youtry .sk-ktag svg {
-  display: none;
-}
-
-.sk-turn-col .sk-method .sk-ktag,
-.sk-turn-col .sk-youtry .sk-ktag {
+.sk-follow .sk-gate-head {
+  display: flex;
+  align-items: center;
+  width: auto;
+  gap: 6px;
   padding: 0;
-  font-size: 10px;
-  line-height: 1.3;
+  border: none;
+  background: transparent;
 }
 
-.sk-turn-col .sk-method .sk-gate-title,
-.sk-turn-col .sk-youtry .sk-gate-title,
-.sk-turn-col .sk-follow .sk-gate-title {
+.sk-follow[data-folded="true"] .sk-gate-title {
   font-size: 13px;
   font-weight: 500;
-  line-height: 1.3;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.sk-turn-col .sk-method .sk-widget-chev,
-.sk-turn-col .sk-youtry .sk-widget-chev,
-.sk-turn-col .sk-follow .sk-widget-chev {
-  margin-left: 0;
+.sk-follow[data-folded="true"] .sk-turn-ico,
+.sk-follow[data-folded="true"] .sk-turn-ico svg,
+.sk-follow[data-folded="true"] .sk-widget-chev svg {
+  width: 11px;
+  height: 11px;
 }
 
-.sk-turn-col .sk-method .sk-widget-chev svg,
-.sk-turn-col .sk-youtry .sk-widget-chev svg,
-.sk-turn-col .sk-follow .sk-widget-chev svg {
-  width: 14px;
-  height: 14px;
+.sk-follow[data-folded="true"] .sk-widget-chev {
+  margin-left: 2px;
 }
 
-.sk-turn-col .sk-method .sk-widget-fold[data-open="true"] .sk-widget-fold-inner {
-  padding: 4px 0 6px calc(var(--turn-icon) + var(--turn-lead-gap));
-}
-
-.sk-turn-col .sk-youtry .sk-widget-fold[data-open="true"] .sk-widget-fold-inner {
-  padding: 2px 0 4px;
-}
-
-.sk-turn-col .sk-method .sk-gate-reason {
-  font-size: 13px;
-  color: var(--color-text-secondary);
-}
-
-.sk-follow {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  min-width: 0;
-  gap: 0;
-  padding: 0;
-  background: transparent;
-  border-radius: 0;
-}
-
-.sk-follow .sk-gate-head {
-  display: grid;
-  grid-template-columns: var(--turn-icon) minmax(0, 1fr) 14px;
-  column-gap: var(--turn-lead-gap);
-  align-items: center;
-  width: 100%;
-  height: 28px;
-  min-height: 28px;
-  max-height: 28px;
-  padding: 0;
-  gap: 0;
-  border: none;
-  background: transparent;
-}
-
-.sk-turn-col .sk-follow .sk-widget-fold[data-open="true"] .sk-widget-fold-inner,
 .sk-follow .sk-widget-fold[data-open="true"] .sk-widget-fold-inner {
   padding: 2px 0 4px;
 }
